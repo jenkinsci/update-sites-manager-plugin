@@ -1,6 +1,6 @@
-*.class
-
-# Package Files #
-*.jar
-*.war
-*.ear
+/.apt_generated
+/.classpath
+/.project
+/.settings
+/target
+/work

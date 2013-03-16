@@ -1,0 +1,6 @@
+<!--
+  This view is used to render the installed plugins page.
+-->
+<div>
+  This plugin is to manage UpdateSites, where Jenkins accesses in order to retrieve plugins.
+</div>
