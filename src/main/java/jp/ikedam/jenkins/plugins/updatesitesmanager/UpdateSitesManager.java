@@ -25,7 +25,6 @@ package jp.ikedam.jenkins.plugins.updatesitesmanager;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -35,7 +34,6 @@ import jenkins.model.Jenkins;
 
 import net.sf.json.JSONObject;
 
-import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.ForwardToView;
 import org.kohsuke.stapler.HttpRedirect;
 import org.kohsuke.stapler.HttpResponse;
@@ -43,7 +41,6 @@ import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 
 import com.google.common.base.Function;
-import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 
 import hudson.DescriptorExtensionList;
@@ -52,19 +49,23 @@ import hudson.model.ManagementLink;
 import hudson.model.Descriptor;
 import hudson.model.Descriptor.FormException;
 import hudson.model.UpdateSite;
-import hudson.search.SearchIndex;
-import hudson.search.SearchIndexBuilder;
-import hudson.search.SearchableModelObject;
-import hudson.search.Search;
 
 /**
  * Pages for manage UpdateSites.
- * New link is added in Manage Jenkins page.
+ * 
+ * Provides following pages.
+ * <ul>
+ *   <li>Manage UpdateSites, shown in Manage Jenkins page</li>
+ *   <li>Add New Site</li>
+ * </ul>
+ * 
+ * And provides access to each updatesite configuration page.
  */
 @Extension(ordinal = Integer.MAX_VALUE - 410)   // show just after Manage Plugins (1.489 and later)
 public class UpdateSitesManager extends ManagementLink
 {
     private Logger LOGGER = Logger.getLogger(UpdateSitesManager.class.getName());
+    
     /**
      * Return the name of the link shown in Manage Jenkins page.
      * 
@@ -114,63 +115,87 @@ public class UpdateSitesManager extends ManagementLink
         return "updatesites";
     }
     
+    /**
+     * Return DescribedUpdateSite for an UpdateSite.
+     * 
+     * DescribedUpdateSite is an UpdateSite with Descriptor for used in views.
+     * If passed UpdateSite is an instance of DescribedUpdateSite, simply returns itself.
+     * If passed UpdateSite is not an instance of DescribedUpdateSite, wrap it with DescribedUpdateSiteWrapper.
+     * 
+     * @param updateSite an UpdateSite
+     * @return a DescribedUpdateSite
+     */
     protected DescribedUpdateSite getUpdateSiteWithDescriptor(UpdateSite updateSite)
     {
         if(updateSite == null)
         {
             return null;
         }
-        else if(updateSite.getClass().equals(UpdateSite.class))
-        {
-            // If input is an instance of UpdateSite,
-            // wrap it and add Descriptor to handle in a view.
-            // For UpdateSite does not provide appropriate
-            // methods for update configuration, subclass of UpdateSite
-            // cannot be handled.
-            return new DescribedUpdateSiteWrapper(updateSite);
-        }
-        else if(updateSite instanceof DescribedUpdateSite)
+        
+        if(updateSite instanceof DescribedUpdateSite)
         {
             return (DescribedUpdateSite)updateSite;
         }
         
-        // No appropriate UpdateSite with Descriptor.
-        LOGGER.warning(String.format("Cannot handle with UpdateSiteManager: %s", updateSite.getClass().getName()));
-        return null;
+        return new DescribedUpdateSiteWrapper(updateSite);
     }
     
+    /**
+     * Return a list of UpdateSites registered in Jenkins.
+     * 
+     * Each UpdateSites is wrapped to DescribedUpdateSite.
+     * 
+     * @return a list of UpdateSites
+     */
     public Iterable<DescribedUpdateSite> getUpdateSiteList()
     {
-        return Iterables.filter(
-            Iterables.transform(
-                Jenkins.getInstance().getUpdateCenter().getSites(),
-                new Function<UpdateSite, DescribedUpdateSite>()
-                {
-                    @Override
-                    public DescribedUpdateSite apply(UpdateSite input)
-                    {
-                        return getUpdateSiteWithDescriptor(input);
-                    }
-                }
-            ),
-            new Predicate<DescribedUpdateSite>()
+        return Iterables.transform(
+            Jenkins.getInstance().getUpdateCenter().getSites(),
+            new Function<UpdateSite, DescribedUpdateSite>()
             {
                 @Override
-                public boolean apply(DescribedUpdateSite input)
+                public DescribedUpdateSite apply(UpdateSite input)
                 {
-                    return (input != null);
+                    return getUpdateSiteWithDescriptor(input);
                 }
             }
         );
     }
     
+    /**
+     * Returns all the registered DescribedUpdateSite.
+     * 
+     * @return a list of Desctiptor of DescribedUpdateSite.
+     */
     public DescriptorExtensionList<DescribedUpdateSite,Descriptor<DescribedUpdateSite>> getUpdateSiteDescriptorList()
     {
         return DescribedUpdateSite.all();
     }
     
+    /**
+     * Create a new UpdateSite.
+     * 
+     * Screen transition is as following:
+     * <ol>
+     *   <li>Click "Add New Site" in /updatesites/.<li>
+     *   <li>newSiteSelect.jelly: Select UpdateSite type. This page is shown if there are more than one DescribedUpdateSite is available.
+     *   <li>newSite.jelly: Fill Form.
+     *   <li>Post Form. /updatesites/ are shown again.
+     * </ol>
+     * 
+     * @param req
+     * @param rsp
+     * @return
+     * @throws IOException
+     * @throws UnsupportedEncodingException
+     * @throws ServletException
+     * @throws FormException
+     */
     public HttpResponse do_add(StaplerRequest req, StaplerResponse rsp) throws IOException, UnsupportedEncodingException, ServletException, FormException
     {
+        // Only administrator can create a new site.
+        Jenkins.getInstance().checkPermission(Jenkins.ADMINISTER);
+        
         Descriptor<DescribedUpdateSite> descriptor = null;
         
         DescriptorExtensionList<DescribedUpdateSite,Descriptor<DescribedUpdateSite>>
@@ -199,23 +224,29 @@ public class UpdateSitesManager extends ManagementLink
         {
             descriptor = descriptorList.get(0);
         }
-            
+        
         if(descriptor == null)
         {
+            // There are more than one DescribedUpdateSite is available,
+            // so let the user to select which to create.
             return new ForwardToView(this, "newSiteSelect.jelly");
         }
         
         if(!"POST".equals(req.getMethod()))
         {
+            // Show form.
+            
             DescribedUpdateSite newSite = descriptor.newInstance(req, new JSONObject());
             
             req.setAttribute("instance", newSite);
             return new ForwardToView(this, "newSite.jelly");
         }
         
+        // Create a new site.
         JSONObject json = req.getSubmittedForm();
         DescribedUpdateSite newSite = descriptor.newInstance(req, json);
         
+        // Check ID duplication.
         for(UpdateSite site: Jenkins.getInstance().getUpdateCenter().getSites())
         {
             if(site.getId().equals(newSite.getId()))
@@ -225,22 +256,27 @@ public class UpdateSitesManager extends ManagementLink
             }
         }
         
-        Jenkins.getInstance().getUpdateCenter().getSites().add(newSite);
+        Jenkins.getInstance().getUpdateCenter().getSites().add(newSite.getUpdateSite());
         Jenkins.getInstance().getUpdateCenter().save();
         
-        return new HttpRedirect(".");
+        return new HttpRedirect("."); // ${rootURL}/updatesites/
     }
     
+    /**
+     * Allow users to access each UpdateSite page.
+     * 
+     * @param token the token from URL. that is, ${rootURL}/updatesites/${toekn}/blahblah
+     * @return
+     */
     public Object getDynamic(String token)
     {
-        for(DescribedUpdateSite site: getUpdateSiteList())
+        for(UpdateSite site: Jenkins.getInstance().getUpdateCenter().getSites())
         {
             if(token.equals(site.getId()))
             {
-                return site;
+                return getUpdateSiteWithDescriptor(site);
             }
         }
         return null;
     }
-    
 }
