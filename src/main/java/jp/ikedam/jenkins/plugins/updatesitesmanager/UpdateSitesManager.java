@@ -25,6 +25,7 @@ package jp.ikedam.jenkins.plugins.updatesitesmanager;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -41,10 +42,12 @@ import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 
 import com.google.common.base.Function;
+import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 
-import hudson.DescriptorExtensionList;
 import hudson.Extension;
+import hudson.Util;
 import hudson.model.ManagementLink;
 import hudson.model.Descriptor;
 import hudson.model.Descriptor.FormException;
@@ -165,11 +168,23 @@ public class UpdateSitesManager extends ManagementLink
     /**
      * Returns all the registered DescribedUpdateSite.
      * 
+     * Only returns DescribedUpdateSite that can be used to create a new site.
+     * 
      * @return a list of Desctiptor of DescribedUpdateSite.
      */
-    public DescriptorExtensionList<DescribedUpdateSite,Descriptor<DescribedUpdateSite>> getUpdateSiteDescriptorList()
+    public List<DescribedUpdateSite.Descriptor> getUpdateSiteDescriptorList()
     {
-        return DescribedUpdateSite.all();
+        return Lists.newArrayList(Iterables.filter(
+                DescribedUpdateSite.all(),
+                new Predicate<DescribedUpdateSite.Descriptor>()
+                {
+                    @Override
+                    public boolean apply(DescribedUpdateSite.Descriptor descriptor)
+                    {
+                        return descriptor.canCreateNewSite();
+                    }
+                }
+        ));
     }
     
     /**
@@ -198,15 +213,14 @@ public class UpdateSitesManager extends ManagementLink
         
         Descriptor<DescribedUpdateSite> descriptor = null;
         
-        DescriptorExtensionList<DescribedUpdateSite,Descriptor<DescribedUpdateSite>>
-        descriptorList = getUpdateSiteDescriptorList();
+        List<DescribedUpdateSite.Descriptor> descriptorList = getUpdateSiteDescriptorList();
         
         if(req.getParameter("stapler-class") != null)
         {
             try
             {
                 @SuppressWarnings("unchecked")
-                Class<DescribedUpdateSite.DescriptorImpl> clazz = (Class<DescribedUpdateSite.DescriptorImpl>)Class.forName(req.getParameter("stapler-class"));
+                Class<DescribedUpdateSite.Descriptor> clazz = (Class<DescribedUpdateSite.Descriptor>)Class.forName(req.getParameter("stapler-class"));
                 descriptor = Jenkins.getInstance().getDescriptorByType(clazz);
             }
             catch(ClassCastException e)
@@ -268,11 +282,11 @@ public class UpdateSitesManager extends ManagementLink
      * @param token the token from URL. that is, ${rootURL}/updatesites/${toekn}/blahblah
      * @return
      */
-    public Object getDynamic(String token)
+    public DescribedUpdateSite getDynamic(String token)
     {
         for(UpdateSite site: Jenkins.getInstance().getUpdateCenter().getSites())
         {
-            if(token.equals(site.getId()))
+            if(token.equals(Util.rawEncode(site.getId())))
             {
                 return getUpdateSiteWithDescriptor(site);
             }

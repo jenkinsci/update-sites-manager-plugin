@@ -25,7 +25,7 @@ package jp.ikedam.jenkins.plugins.updatesitesmanager;
 
 import org.kohsuke.stapler.DataBoundConstructor;
 
-import hudson.model.Descriptor;
+import hudson.Extension;
 import hudson.model.UpdateSite;
 
 /**
@@ -38,6 +38,8 @@ import hudson.model.UpdateSite;
 
 public class DescribedUpdateSiteWrapper extends DescribedUpdateSite
 {
+    private static final long serialVersionUID = -381591686508537334L;
+    
     @DataBoundConstructor
     public DescribedUpdateSiteWrapper(String id, String url)
     {
@@ -79,12 +81,13 @@ public class DescribedUpdateSiteWrapper extends DescribedUpdateSite
     }
     
     @Override
-    public Descriptor<DescribedUpdateSite> getDescriptor()
+    public Descriptor getDescriptor()
     {
         return DescriptorImpl.DESCRIPTOR;
     }
     
-    static public class DescriptorImpl extends DescribedUpdateSite.DescriptorImpl
+    @Extension
+    static public class DescriptorImpl extends DescribedUpdateSite.Descriptor
     {
         static DescriptorImpl DESCRIPTOR = new DescriptorImpl();
         
@@ -98,6 +101,12 @@ public class DescribedUpdateSiteWrapper extends DescribedUpdateSite
         public String getDescription()
         {
             return Messages.DescribedUpdateSiteWrapper_Description();
+        }
+        
+        @Override
+        public boolean canCreateNewSite()
+        {
+            return false;
         }
     };
 }
