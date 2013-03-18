@@ -286,7 +286,7 @@ public class UpdateSitesManager extends ManagementLink
     {
         for(UpdateSite site: Jenkins.getInstance().getUpdateCenter().getSites())
         {
-            if(token.equals(Util.rawEncode(site.getId())))
+            if(token.equals(site.getId()))
             {
                 return getUpdateSiteWithDescriptor(site);
             }
