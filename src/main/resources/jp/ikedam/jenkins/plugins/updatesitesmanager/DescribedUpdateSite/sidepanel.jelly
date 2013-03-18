@@ -27,7 +27,7 @@ THE SOFTWARE.
   <l:side-panel>
     <l:tasks>
       <l:task icon="images/24x24/up.png" href=".." title="${%Back to List}" contextMenu="false" />
-      <l:task icon="images/24x24/edit-delete.png" href="delete" title="${%Delete Site}" permission="${it.DELETE}" />
+      <l:task icon="images/24x24/edit-delete.png" href="delete" title="${%Delete Site}" />
       <st:include page="sidepanel2.jelly" optional="true" /><!-- hook for derived class to add more items -->
     </l:tasks>
   </l:side-panel>

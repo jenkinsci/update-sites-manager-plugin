@@ -27,7 +27,7 @@ THE SOFTWARE.
   <st:include page="sidepanel.jelly" />
   <l:main-panel>
     <f:form method="post">
-      Delete ${it.displayName}?
+      ${%DeleteConfirm(it.displayName)}
       <f:submit value="${%Yes}" />
     </f:form>
   </l:main-panel>
