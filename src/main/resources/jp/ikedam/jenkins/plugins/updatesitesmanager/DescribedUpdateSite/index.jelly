@@ -35,6 +35,11 @@ THE SOFTWARE.
       <h1>
         ${instance.displayName}
       </h1>
+      <j:if test="${!instance.editable}">
+        <div class="warning">
+          ${%This site cannot be configured with UpdateSitesManager. Please visit the configuration page dedicated for this site.}
+        </div>
+      </j:if>
       <f:form method="post" action="configure">
         <st:include page="config.jelly" />
         <j:if test="${instance.editable}">
