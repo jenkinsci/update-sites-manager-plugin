@@ -35,6 +35,7 @@ import jenkins.model.Jenkins;
 
 import net.sf.json.JSONObject;
 
+import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.ForwardToView;
 import org.kohsuke.stapler.HttpRedirect;
 import org.kohsuke.stapler.HttpResponse;
@@ -47,7 +48,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
 import hudson.Extension;
-import hudson.Util;
 import hudson.model.ManagementLink;
 import hudson.model.Descriptor;
 import hudson.model.Descriptor.FormException;
@@ -249,16 +249,21 @@ public class UpdateSitesManager extends ManagementLink
         if(!"POST".equals(req.getMethod()))
         {
             // Show form.
-            
-            DescribedUpdateSite newSite = descriptor.newInstance(req, new JSONObject());
-            
-            req.setAttribute("instance", newSite);
+            req.setAttribute("instance", null);
+            req.setAttribute("descriptor", descriptor);
             return new ForwardToView(this, "newSite.jelly");
         }
         
         // Create a new site.
         JSONObject json = req.getSubmittedForm();
         DescribedUpdateSite newSite = descriptor.newInstance(req, json);
+        
+        // Check ID filled
+        if(StringUtils.isBlank(newSite.getId()))
+        {
+            // ID is empty.
+            throw new FormException("id is empty", "id");
+        }
         
         // Check ID duplication.
         for(UpdateSite site: Jenkins.getInstance().getUpdateCenter().getSites())

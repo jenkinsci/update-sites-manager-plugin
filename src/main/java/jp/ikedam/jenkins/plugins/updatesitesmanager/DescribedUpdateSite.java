@@ -65,7 +65,7 @@ abstract public class DescribedUpdateSite extends UpdateSite implements Describa
      */
     public DescribedUpdateSite(String id, String url)
     {
-        super(id, url);
+        super(StringUtils.trim(id), StringUtils.trim(url));
     }
     
     /**

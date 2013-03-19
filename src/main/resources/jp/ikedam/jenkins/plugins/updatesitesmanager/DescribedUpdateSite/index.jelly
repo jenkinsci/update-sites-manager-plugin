@@ -43,9 +43,9 @@ THE SOFTWARE.
       <f:form method="post" action="configure">
         <st:include page="config.jelly" />
         <j:if test="${instance.editable}">
-        <f:entry>
+        <f:block>
           <f:submit value="${%Save}"/>
-        </f:entry>
+        </f:block>
         </j:if>
       </f:form>
     </j:scope>

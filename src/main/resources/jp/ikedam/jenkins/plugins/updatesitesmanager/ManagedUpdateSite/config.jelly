@@ -36,7 +36,7 @@ THE SOFTWARE.
         <f:textbox />
     </f:entry>
     <f:optionalBlock field="useCaCertificate" inline="true" title="${%Need CA Certificate}">
-      <f:entry title="CA Certificate" field="caCertificate">
+      <f:entry title="${%CA Certificate}" field="caCertificate">
         <f:textarea />
       </f:entry>
     </f:optionalBlock>

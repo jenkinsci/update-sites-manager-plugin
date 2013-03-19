@@ -23,6 +23,7 @@
  */
 package jp.ikedam.jenkins.plugins.updatesitesmanager;
 
+import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import hudson.Extension;
@@ -50,7 +51,7 @@ public class DescribedUpdateSiteWrapper extends DescribedUpdateSite
     public DescribedUpdateSiteWrapper(String id, String url)
     {
         super(null, null);
-        this.updateSite = new UpdateSite(id, url);
+        this.updateSite = new UpdateSite(StringUtils.trim(id), StringUtils.trim(url));
     }
     
     /**

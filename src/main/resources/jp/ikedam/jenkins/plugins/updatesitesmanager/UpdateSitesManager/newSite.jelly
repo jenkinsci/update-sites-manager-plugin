@@ -29,16 +29,13 @@ THE SOFTWARE.
 <l:layout title="${%Add New Site}" permission="${app.ADMINISTER}" norefresh="true">
   <st:include it="${app}" page="sidepanel.jelly"/>
   <l:main-panel>
-    <j:scope>
-      <j:set var="descriptor" value="${instance.descriptor}" />
-      <h1>${%Add New Site}</h1>
-      <f:form method="post">
-        <st:include it="${instance}" page="config.jelly" />
-        <f:entry>
-          <f:submit value="${%Save}"/>
-        </f:entry>
-      </f:form>
-    </j:scope>
+    <h1>${%Add New Site}</h1>
+    <f:form method="post">
+      <st:include class="${descriptor.clazz}" page="config.jelly" />
+      <f:block>
+        <f:submit value="${%Save}"/>
+      </f:block>
+    </f:form>
   </l:main-panel>
 </l:layout>
 </j:jelly>

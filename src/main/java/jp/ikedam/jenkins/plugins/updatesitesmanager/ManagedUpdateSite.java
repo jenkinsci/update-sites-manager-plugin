@@ -37,8 +37,19 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 
 /**
- * @author yasuke
- *
+ * Extended UpdateSite to be managed in UpdateSitesManager.
+ * 
+ * ManagedUpdateSite provides following features.
+ * <ul>
+ *   <li>can switch enabled/disabled.</li>
+ *   <li>have a note field.</li>
+ *   <li>can set a CA certificate for the signature of the site.</li>
+ * </ul>
+ * 
+ * The CA certificate is written to a temporary file under ${JENKINS_HOME}/update-center-rootCAs/ .
+ * I think it is a better implementation to override UpdateSite#verifySignature,
+ * but it is private method.
+ * Re-implementing doPostBack results to re-implement whole the UpdateSite.
  */
 public class ManagedUpdateSite extends DescribedUpdateSite
 {
@@ -47,13 +58,22 @@ public class ManagedUpdateSite extends DescribedUpdateSite
     private String caCertificate;
     
     /**
-     * @return the caCertificate
+     * Returns the CA certificate to verify the signature.
+     * 
+     * This is useful when the UpdateSite is signed with a self-signed private key.
+     * 
+     * @return the CA certificate
      */
     public String getCaCertificate()
     {
         return caCertificate;
     }
     
+    /**
+     * Returns whether to use CA certificate.
+     * 
+     * @return whether to use CA certificate
+     */
     public boolean isUseCaCertificate()
     {
         return getCaCertificate() != null;
@@ -62,7 +82,11 @@ public class ManagedUpdateSite extends DescribedUpdateSite
     private boolean disabled;
     
     /**
-     * @return the disabled
+     * Returns whether this site is disabled.
+     * 
+     * When disabled, plugins in this site gets unavailable.
+     * 
+     * @return the whether this site is disabled
      */
     @Override
     public boolean isDisabled()
@@ -73,6 +97,10 @@ public class ManagedUpdateSite extends DescribedUpdateSite
     private String note;
     
     /**
+     * Returns the note
+     * 
+     * Note is only used for the displaying purpose.
+     * 
      * @return the note
      */
     @Override
@@ -81,6 +109,13 @@ public class ManagedUpdateSite extends DescribedUpdateSite
         return note;
     }
     
+    /**
+     * Returns the path to the CA certificate file.
+     * 
+     * The file to store the CA certificate temporary.
+     * 
+     * @return the path to the CA certificate file
+     */
     protected File getCaCertificateFile()
     {
         File caCertificateDir = new File(Jenkins.getInstance().getRootDir(), "update-center-rootCAs");
@@ -92,6 +127,16 @@ public class ManagedUpdateSite extends DescribedUpdateSite
         return new File(caCertificateDir, String.format("tmp-ManageUpdateSite-%s.crt", getId()));
     }
     
+    /**
+     * Create a new instance
+     * 
+     * @param id
+     * @param url
+     * @param useCaCertificate
+     * @param caCertificate
+     * @param note
+     * @param disabled
+     */
     @DataBoundConstructor
     public ManagedUpdateSite(
             String id,
@@ -108,12 +153,17 @@ public class ManagedUpdateSite extends DescribedUpdateSite
         this.disabled = disabled;
     }
     
-    @DataBoundConstructor
-    public ManagedUpdateSite()
-    {
-        this("", "", false, null, "", false);
-    }
-    
+    /**
+     * Process update-center.json.
+     * 
+     * If a CA certificate is set, write it to file and make it ready to verify the signature.
+     * 
+     * @param req
+     * @return FormValidation object
+     * @throws IOException
+     * @throws GeneralSecurityException
+     * @see hudson.model.UpdateSite#doPostBack(org.kohsuke.stapler.StaplerRequest)
+     */
     @Override
     public FormValidation doPostBack(StaplerRequest req) throws IOException,
             GeneralSecurityException
@@ -126,6 +176,17 @@ public class ManagedUpdateSite extends DescribedUpdateSite
         return super.doPostBack(req);
     }
     
+    /**
+     * Uses custom CA certificate to process update-center.json.
+     * 
+     * To avoid having the certificate file overwritten by another thread,
+     * this method is synchronized.
+     * 
+     * @param req
+     * @return FormValidation object
+     * @throws IOException
+     * @throws GeneralSecurityException
+     */
     private synchronized FormValidation doPostBackWithCaCertificate(StaplerRequest req)
             throws IOException, GeneralSecurityException
     {
@@ -144,6 +205,13 @@ public class ManagedUpdateSite extends DescribedUpdateSite
         }
     }
     
+    /**
+     * Verify the signature of downloaded update-center.json.
+     * 
+     * @return FormValidation object.
+     * @throws IOException
+     * @see hudson.model.UpdateSite#doVerifySignature()
+     */
     @Override
     public FormValidation doVerifySignature() throws IOException
     {
@@ -155,6 +223,15 @@ public class ManagedUpdateSite extends DescribedUpdateSite
         return super.doVerifySignature();
     }
     
+    /**
+     * Verify the signature with custom CA certificate.
+     * 
+     * To avoid having the certificate file overwritten by another thread,
+     * this method is synchronized.
+     * 
+     * @return FormValidation object.
+     * @throws IOException
+     */
     private synchronized FormValidation doVerifySignatureWithCaCertificate() throws IOException
     {
         File caFile = getCaCertificateFile();
@@ -172,15 +249,34 @@ public class ManagedUpdateSite extends DescribedUpdateSite
         }
     }
     
+    /**
+     * Descriptor for this class.
+     */
     @Extension
     static public class DescriptorImpl extends DescribedUpdateSite.Descriptor
     {
+        /**
+         * Returns the name of this UpdateSite.
+         * 
+         * shown when select UpdateSite to create.
+         * 
+         * @return
+         * @see hudson.model.Descriptor#getDisplayName()
+         */
         @Override
         public String getDisplayName()
         {
             return Messages.ManagedUpdateSite_DisplayName();
         }
         
+        /**
+         * Returns the description of this UpdateSite.
+         * 
+         * shown when select UpdateSite to create.
+         * 
+         * @return
+         * @see jp.ikedam.jenkins.plugins.updatesitesmanager.DescribedUpdateSite.Descriptor#getDescription()
+         */
         @Override
         public String getDescription()
         {
