@@ -69,6 +69,8 @@ public class UpdateSitesManager extends ManagementLink
 {
     private Logger LOGGER = Logger.getLogger(UpdateSitesManager.class.getName());
     
+    public final static String URL = "updatesites";
+    
     /**
      * Return the name of the link shown in Manage Jenkins page.
      * 
@@ -115,7 +117,7 @@ public class UpdateSitesManager extends ManagementLink
     @Override
     public String getUrlName()
     {
-        return "updatesites";
+        return URL;
     }
     
     /**

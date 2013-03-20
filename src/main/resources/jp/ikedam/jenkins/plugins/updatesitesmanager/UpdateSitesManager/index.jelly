@@ -27,7 +27,7 @@ THE SOFTWARE.
   shown when accessed /updatesites/
 -->
 <l:layout title="${it.displayName}" permission="${app.ADMINISTER}" norefresh="true">
-  <st:include it="${app}" page="sidepanel.jelly"/>
+  <st:include page="sidepanel.jelly"/>
   <l:header>
     <style type="text/css">
       #update-sites .disabled

@@ -27,7 +27,7 @@ THE SOFTWARE.
   shown when accessed /updatesites/_add, and if there are more than one DescribedUpdateSite available.
 -->
 <l:layout title="${%Add New Site}" permission="${app.ADMINISTER}" norefresh="true">
-  <st:include it="${app}" page="sidepanel.jelly"/>
+  <st:include page="sidepanel.jelly"/>
   <l:main-panel>
     <form class="no-json" method="get" action="_add">
     <table width="100%">
