@@ -291,6 +291,10 @@ public class UpdateSitesManager extends ManagementLink
      */
     public DescribedUpdateSite getDynamic(String token)
     {
+        if(StringUtils.isEmpty(token))
+        {
+            return null;
+        }
         for(UpdateSite site: Jenkins.getInstance().getUpdateCenter().getSites())
         {
             if(token.equals(site.getId()))
