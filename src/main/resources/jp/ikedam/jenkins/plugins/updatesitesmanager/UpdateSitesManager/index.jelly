@@ -54,7 +54,7 @@ THE SOFTWARE.
         </tr>
       </j:forEach>
     </table>
-    <a href="_add">${%Add New Site}</a>
+    <a id="add-new-site-link" href="_add" title="${%Add New Site}">${%Add New Site}</a>
   </l:main-panel>
 </l:layout>
 </j:jelly>

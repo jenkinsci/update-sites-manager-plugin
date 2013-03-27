@@ -23,32 +23,10 @@ THE SOFTWARE.
 -->
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
-<!--
-  shown when accessed /updatesites/XXXX/
--->
-<l:layout title="${it.displayName}" permission="${app.ADMINISTER}">
-  <st:include page="sidepanel.jelly"/>
-  <l:main-panel>
-    <j:scope>
-      <j:set var="instance" value="${it}" />
-      <j:set var="descriptor" value="${instance.descriptor}" />
-      <h1>
-        ${instance.displayName}
-      </h1>
-      <j:if test="${!instance.editable}">
-        <div class="warning">
-          ${%This site cannot be configured with UpdateSitesManager. Please visit the configuration page dedicated for this site.}
-        </div>
-      </j:if>
-      <f:form name="editSiteForm" method="post" action="configure">
-        <st:include page="config.jelly" />
-        <j:if test="${instance.editable}">
-        <f:block>
-          <f:submit value="${%Save}"/>
-        </f:block>
-        </j:if>
-      </f:form>
-    </j:scope>
-  </l:main-panel>
-</l:layout>
+  <f:entry title="${%ID}" field="id">
+    <f:textbox />
+  </f:entry>
+  <f:entry title="${%URL}" field="url">
+    <f:textbox />
+  </f:entry>
 </j:jelly>

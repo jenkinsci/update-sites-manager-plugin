@@ -30,7 +30,7 @@ THE SOFTWARE.
   <st:include page="sidepanel.jelly"/>
   <l:main-panel>
     <h1>${%Add New Site}</h1>
-    <f:form method="post">
+    <f:form name="addSiteForm" method="post">
       <st:include class="${descriptor.clazz}" page="config.jelly" />
       <f:block>
         <f:submit value="${%Save}"/>

@@ -29,7 +29,7 @@ THE SOFTWARE.
 <l:layout title="${%Add New Site}" permission="${app.ADMINISTER}" norefresh="true">
   <st:include page="sidepanel.jelly"/>
   <l:main-panel>
-    <form class="no-json" method="get" action="_add">
+    <form class="no-json" name="selectNewSiteForm" method="get" action="_add">
     <table width="100%">
       <j:forEach var="descriptor" items="${it.updateSiteDescriptorList}">
         <f:entry>
