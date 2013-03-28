@@ -20,6 +20,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 import org.xml.sax.SAXException;
 
+import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
 import com.gargoylesoftware.htmlunit.html.DomNodeList;
 import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
 import com.gargoylesoftware.htmlunit.html.HtmlElement;
@@ -350,7 +351,7 @@ public class UpdateSiteManagerJenkinsTest extends HudsonTestCase
         assertTrue("This test must run with more than one UpdateSite Descriptors registered.", 1 < target.getUpdateSiteDescriptorList().size());
         
         WebClient wc = new WebClient();
-        //wc.setPrintContentOnFailingStatusCode(false);
+        wc.setPrintContentOnFailingStatusCode(false);
         
         // Post without id.
         {
@@ -381,10 +382,9 @@ public class UpdateSiteManagerJenkinsTest extends HudsonTestCase
                 submit(addNewSiteForm);
                 assertTrue("Must return an exception", false);
             }
-            catch(Exception e) // TODO: replace with appropriate Exception
+            catch(FailingHttpStatusCodeException e)
             {
-                System.out.println(e.getClass().getName());
-                System.out.println(e);
+                assertEquals("Unexpected error code returned", 400, e.getStatusCode());
             }
         }
         
@@ -416,10 +416,9 @@ public class UpdateSiteManagerJenkinsTest extends HudsonTestCase
                 submit(addNewSiteForm);
                 assertTrue("Must return an exception", false);
             }
-            catch(Exception e) // TODO: replace with appropriate Exception
+            catch(FailingHttpStatusCodeException e)
             {
-                System.out.println(e.getClass().getName());
-                System.out.println(e);
+                assertEquals("Unexpected error code returned", 400, e.getStatusCode());
             }
         }
     }
