@@ -25,6 +25,8 @@ package jp.ikedam.jenkins.plugins.updatesitesmanager;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -100,7 +102,7 @@ abstract public class DescribedUpdateSite extends UpdateSite implements Describa
      */
     public String getPageUrl()
     {
-        return String.format("%s/", Util.rawEncode(getId()));
+        return Util.rawEncode(getId());
     }
     
     /**
@@ -377,6 +379,24 @@ abstract public class DescribedUpdateSite extends UpdateSite implements Describa
             if(StringUtils.isBlank(url))
             {
                 return FormValidation.error(Messages.DescribedupdateSite_url_required());
+            }
+            
+            URI uri;
+            try
+            {
+                uri = new URI(url);
+            }
+            catch(URISyntaxException e)
+            {
+                return FormValidation.error(Messages.DescribedupdateSite_url_invalid(e.getLocalizedMessage()));
+            }
+            
+            if(
+                StringUtils.isBlank(uri.getScheme())
+                || StringUtils.isBlank(uri.getHost())
+            )
+            {
+                return FormValidation.error(Messages.DescribedupdateSite_url_invalid("incomplete URI"));
             }
             return FormValidation.ok();
         }

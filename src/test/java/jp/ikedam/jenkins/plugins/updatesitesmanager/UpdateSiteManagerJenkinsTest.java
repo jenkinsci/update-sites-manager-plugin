@@ -1,5 +1,25 @@
-/**
+/*
+ * The MIT License
  * 
+ * Copyright (c) 2013 IKEDA Yasuyuki
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
  */
 package jp.ikedam.jenkins.plugins.updatesitesmanager;
 
@@ -32,7 +52,6 @@ import com.google.common.collect.Lists;
 
 /**
  * Tests for UpdateSiteManager, concerned with Jenkins.
- *
  */
 public class UpdateSiteManagerJenkinsTest extends HudsonTestCase
 {
@@ -88,10 +107,6 @@ public class UpdateSiteManagerJenkinsTest extends HudsonTestCase
         
         WebClient wc = new WebClient();
         
-        // make output quiet.
-        // comment out here if an unexpected behavior occurs.
-        wc.setPrintContentOnFailingStatusCode(false);
-        
         HtmlPage updateSitesPage = wc.goTo(UpdateSitesManager.URL);
         HtmlElement table = updateSitesPage.getElementById("update-sites");
         DomNodeList<HtmlElement> trs = table.getElementsByTagName("tr");
@@ -101,8 +116,8 @@ public class UpdateSiteManagerJenkinsTest extends HudsonTestCase
             trs.size()
         );
         
-        assertNotNull("Link to site1 does not exists", updateSitesPage.getAnchorByHref(String.format("%s/", site1.getId())));
-        assertNotNull("Link to site2 does not exists", updateSitesPage.getAnchorByHref(String.format("%s/", site2.getId())));
+        assertNotNull("Link to site1 does not exists", updateSitesPage.getAnchorByHref(site1.getId()));
+        assertNotNull("Link to site2 does not exists", updateSitesPage.getAnchorByHref(site2.getId()));
     }
     
     public void testGetUpdateSiteList() throws IOException
@@ -140,6 +155,67 @@ public class UpdateSiteManagerJenkinsTest extends HudsonTestCase
             assertEquals("site1 does not match", site1.getId(), sites.get(0).getId());
             assertEquals("site1 does not match", site1.getUrl(), sites.get(0).getUrl());
             assertSame("site2 does not match", site2, sites.get(1));
+        }
+    }
+    
+    private static class SubclassOfUpdateSite extends UpdateSite
+    {
+        public SubclassOfUpdateSite(String id, String url)
+        {
+            super(id, url);
+        }
+    }
+    
+    public void testGetUpdateSiteList_DescribedUpdateSiteWrapper() throws IOException
+    {
+        UpdateSitesManager target = new UpdateSitesManager();
+        
+        // Subclass of DescribedUpdateSite
+        {
+            Jenkins.getInstance().getUpdateCenter().getSites().clear();
+            UpdateSite site = new ManagedUpdateSite(
+                "test1",
+                "http://example.com/test/update-center.json",
+                false,
+                null,
+                "test",
+                false
+            );
+            Jenkins.getInstance().getUpdateCenter().getSites().add(site);
+            
+            List<DescribedUpdateSite> sites = Lists.newArrayList(target.getUpdateSiteList());
+            assertEquals("The number of sites does not match", 1, sites.size());
+            assertSame("Subclass of DescribedUpdateSite must be passed as itself", site, sites.get(0));
+        }
+        
+        // UpdateSite
+        {
+            Jenkins.getInstance().getUpdateCenter().getSites().clear();
+            UpdateSite site = new UpdateSite(
+                "test1",
+                "http://example.com/test/update-center.json"
+            );
+            Jenkins.getInstance().getUpdateCenter().getSites().add(site);
+            
+            List<DescribedUpdateSite> sites = Lists.newArrayList(target.getUpdateSiteList());
+            assertEquals("The number of sites does not match", 1, sites.size());
+            assertEquals("UpdateSite must wrapped with DescribedUpdateSiteWrapper", DescribedUpdateSiteWrapper.class, sites.get(0).getClass());
+            assertSame("UpdateSite must be retrieved", site, ((DescribedUpdateSite)sites.get(0)).getUpdateSite());
+        }
+        
+        // Subclass of UpdateSite
+        {
+            Jenkins.getInstance().getUpdateCenter().getSites().clear();
+            UpdateSite site = new SubclassOfUpdateSite(
+                "test1",
+                "http://example.com/test/update-center.json"
+            );
+            Jenkins.getInstance().getUpdateCenter().getSites().add(site);
+            
+            List<DescribedUpdateSite> sites = Lists.newArrayList(target.getUpdateSiteList());
+            assertEquals("The number of sites does not match", 1, sites.size());
+            assertEquals("Subclass of UpdateSite must wrapped with DescribedUpdateSiteWrapper", DescribedUpdateSiteWrapper.class, sites.get(0).getClass());
+            assertSame("UpdateSite must be retrieved", site, ((DescribedUpdateSite)sites.get(0)).getUpdateSite());
         }
     }
     
@@ -226,6 +302,10 @@ public class UpdateSiteManagerJenkinsTest extends HudsonTestCase
     public void testDo_add() throws IOException, SAXException
     {
         UpdateSitesManager target = new UpdateSitesManager();
+        for(DescribedUpdateSite.Descriptor d: target.getUpdateSiteDescriptorList())
+        {
+            System.out.println(d);
+        }
         assertEquals("This test must run with one UpdateSite Descriptors registered.", 1, target.getUpdateSiteDescriptorList().size());
         
         WebClient wc = new WebClient();
@@ -303,19 +383,21 @@ public class UpdateSiteManagerJenkinsTest extends HudsonTestCase
         // Post form.
         String id = "newsite1";
         String url = "http://localhost/update-center.json";
+        String testValue = "Some Test Value";
         addNewSiteForm.getInputByName("_.id").setValueAttribute(id);
         addNewSiteForm.getInputByName("_.url").setValueAttribute(url);
+        addNewSiteForm.getInputByName("_.testValue").setValueAttribute(testValue);
         updateSitesPage = submit(addNewSiteForm);
         
         // Verify new site is added.
         assertEquals("No site is added", before + 1, Jenkins.getInstance().getUpdateCenter().getSites().size());
-        UpdateSite site = null;
+        TestUpdateSite site = null;
         
         for(UpdateSite test: Jenkins.getInstance().getUpdateCenter().getSites())
         {
             if(id.equals(test.getId()))
             {
-                site = test;
+                site = (TestUpdateSite)test;
                 break;
             }
         }
@@ -323,6 +405,7 @@ public class UpdateSiteManagerJenkinsTest extends HudsonTestCase
         assertNotNull("Added site not found", site);
         assertEquals("Unexpected site type", TestUpdateSite.class, site.getClass());
         assertEquals("URL is not configured", url, site.getUrl());
+        assertEquals("Test Value is not configured", testValue, site.getTestValue());
         
         // added site is in list.
         assertNotNull("Added site must be listed", updateSitesPage.getAnchorByHref(((TestUpdateSite)site).getPageUrl()));
@@ -427,10 +510,18 @@ public class UpdateSiteManagerJenkinsTest extends HudsonTestCase
     {
         private static final long serialVersionUID = -6892029314071071061L;
         
+        private String testValue;
+        
+        public String getTestValue()
+        {
+            return testValue;
+        }
+        
         @DataBoundConstructor
-        public TestUpdateSite(String id, String url)
+        public TestUpdateSite(String id, String url, String testValue)
         {
             super(id, url);
+            this.testValue = testValue;
         }
         
         @TestExtension("testDo_addWithMultiUpdateSites")
