@@ -290,11 +290,6 @@ public class DescribedUpdateSiteJenkinsTest extends HudsonTestCase
             HtmlForm deleteSiteForm = deleteSitePage.getFormByName("deleteSiteForm");
             assertNotNull("There must be deleteSiteForm", deleteSiteForm);
             
-            System.out.println("*************************************************************");
-            System.out.println(deleteSiteForm.getActionAttribute());
-            System.out.println(deleteSiteForm.getActionAttribute().length());
-            System.out.println(deleteSiteForm.getPage().getWebResponse().getRequestSettings().getUrl());
-            System.out.println("*************************************************************");
             submit(deleteSiteForm);
             assertEquals("UpdateSite must be deleted.", initialSize - 1, Jenkins.getInstance().getUpdateCenter().getSites().size());
         }

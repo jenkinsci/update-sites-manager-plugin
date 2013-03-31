@@ -70,6 +70,16 @@ public class ManagedUpdateSite extends DescribedUpdateSite
     }
     
     /**
+     * Set the CA certificate to verify the signature.
+     * 
+     * Mainly for testing Purpose.
+     */
+    public void setCaCertificate(String caCertificate)
+    {
+        this.caCertificate = caCertificate;
+    }
+    
+    /**
      * Returns whether to use CA certificate.
      * 
      * @return whether to use CA certificate
