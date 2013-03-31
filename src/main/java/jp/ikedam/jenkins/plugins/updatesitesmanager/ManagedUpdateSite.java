@@ -23,9 +23,15 @@
  */
 package jp.ikedam.jenkins.plugins.updatesitesmanager;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.security.GeneralSecurityException;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import jenkins.model.Jenkins;
 
@@ -33,7 +39,9 @@ import hudson.Extension;
 import hudson.util.FormValidation;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 
 /**
@@ -54,6 +62,8 @@ import org.kohsuke.stapler.StaplerRequest;
 public class ManagedUpdateSite extends DescribedUpdateSite
 {
     private static final long serialVersionUID = -714713790690982048L;
+    
+    private static Logger LOGGER = Logger.getLogger(ManagedUpdateSite.class.getName());
     
     private String caCertificate;
     
@@ -158,7 +168,7 @@ public class ManagedUpdateSite extends DescribedUpdateSite
     )
     {
         super(id, url);
-        this.caCertificate = useCaCertificate?caCertificate:null;
+        this.caCertificate = useCaCertificate?StringUtils.trim(caCertificate):null;
         this.note = note;
         this.disabled = disabled;
     }
@@ -292,5 +302,55 @@ public class ManagedUpdateSite extends DescribedUpdateSite
         {
             return Messages.ManagedUpdateSite_Description();
         }
+        
+        /**
+         * Returns whether the certificate is valid.
+         * 
+         * @return FormValidation object
+         */
+        public FormValidation doCheckCaCertificate(
+                @QueryParameter boolean useCaCertificate,
+                @QueryParameter String caCertificate
+        )
+        {
+            if(!useCaCertificate)
+            {
+                return FormValidation.ok();
+            }
+            
+            if(StringUtils.isBlank(caCertificate))
+            {
+                return FormValidation.error(Messages.ManagedUpdateSite_caCertificate_required());
+            }
+            
+            CertificateFactory cf = null;
+            try
+            {
+                cf = CertificateFactory.getInstance("X509");
+            }
+            catch(CertificateException e)
+            {
+                LOGGER.log(Level.WARNING, "Failed to retrieve CertificateFactory for X509", e);
+            }
+            
+            if(cf != null)
+            {
+                try
+                {
+                    cf.generateCertificate(new ByteArrayInputStream(StringUtils.trim(caCertificate).getBytes("UTF-8")));
+                }
+                catch(CertificateException e)
+                {
+                    return FormValidation.error(Messages.ManagedUpdateSite_caCertificate_invalid(e.getLocalizedMessage()));
+                }
+                catch(UnsupportedEncodingException e)
+                {
+                    LOGGER.log(Level.WARNING, "Failed to decode Certificate", e);
+                }
+            }
+            
+            return FormValidation.ok();
+        }
+        
     };
 }

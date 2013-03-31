@@ -155,6 +155,7 @@ public class ManagedUpdateSiteJenkinsTest extends HudsonTestCase
             }
             
             {
+                target.setCaCertificate(null);
                 target.setDoPostBackResult(null);
                 wc.getPage(wrs);
                 assertEquals(
@@ -167,6 +168,70 @@ public class ManagedUpdateSiteJenkinsTest extends HudsonTestCase
         finally
         {
             Jenkins.getInstance().setCrumbIssuer(crumb);
+        }
+    }
+    
+    private ManagedUpdateSite.DescriptorImpl getDescriptor()
+    {
+        return (ManagedUpdateSite.DescriptorImpl)new ManagedUpdateSite(null, null, false, null, null, false).getDescriptor();
+    }
+    
+    public void testDescriptorDoCheckCaCertificate() throws FileNotFoundException, IOException, URISyntaxException
+    {
+        ManagedUpdateSite.DescriptorImpl descriptor = getDescriptor();
+        String caCertificate = FileUtils.readFileToString(getResource("caCertificate.crt"));
+        
+        {
+            assertEquals(
+                    "Always ok if certificate is disabled",
+                    FormValidation.Kind.OK,
+                    descriptor.doCheckCaCertificate(false, null).kind
+            );
+        }
+        
+        {
+            assertEquals(
+                    "OK for valid certificate",
+                    FormValidation.Kind.OK,
+                    descriptor.doCheckCaCertificate(true, caCertificate).kind
+            );
+        }
+    }
+    
+    public void testDescriptorDoCheckCaCertificateError()
+    {
+        ManagedUpdateSite.DescriptorImpl descriptor = getDescriptor();
+        
+        {
+            assertEquals(
+                    "Null certificate",
+                    FormValidation.Kind.ERROR,
+                    descriptor.doCheckCaCertificate(true, null).kind
+            );
+        }
+        
+        {
+            assertEquals(
+                    "Empty certificate",
+                    FormValidation.Kind.ERROR,
+                    descriptor.doCheckCaCertificate(true, "").kind
+            );
+        }
+        
+        {
+            assertEquals(
+                    "Blank certificate",
+                    FormValidation.Kind.ERROR,
+                    descriptor.doCheckCaCertificate(true, "  ").kind
+            );
+        }
+        
+        {
+            assertEquals(
+                    "Invalid certificate",
+                    FormValidation.Kind.ERROR,
+                    descriptor.doCheckCaCertificate(true, "hogehogehogehoge").kind
+            );
         }
     }
 }
