@@ -29,6 +29,8 @@ import jenkins.model.Jenkins;
 
 import org.jvnet.hudson.test.HudsonTestCase;
 import org.jvnet.hudson.test.TestExtension;
+import org.jvnet.hudson.test.HudsonTestCase.WebClient;
+import org.jvnet.hudson.test.recipes.LocalData;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
@@ -345,6 +347,66 @@ public class DescribedUpdateSiteJenkinsTest extends HudsonTestCase
                 assertEquals("This request must be rejected with 400 Bad Request", 400, e.getStatusCode());
             }
             assertEquals("UpdateSite must not be deleted.", initialSize, Jenkins.getInstance().getUpdateCenter().getSites().size());
+        }
+    }
+    
+    @LocalData
+    public void testPrivilege() throws Exception
+    {
+        UpdateSite site = new UpdateSite(
+            "test1",
+            "http://example.com/test/update-center.json"
+        );
+        Jenkins.getInstance().getUpdateCenter().getSites().add(site);
+        
+        WebClient wcAdmin = new WebClient();
+        wcAdmin.login("admin", "admin");
+        
+        WebClient wcUser = new WebClient();
+        wcUser.setPrintContentOnFailingStatusCode(false);
+        wcUser.login("user", "user");
+        
+        // configure
+        {
+            HtmlPage editSitePage = wcAdmin.goTo(String.format("%s/%s", UpdateSitesManager.URL, site.getId()));
+            HtmlForm editSiteForm = editSitePage.getFormByName("editSiteForm");
+            submit(editSiteForm);
+        }
+        {
+            try
+            {
+                wcUser.goTo(String.format("%s/%s", UpdateSitesManager.URL, site.getId()));
+                fail("Access without privilege must rejected");
+            }
+            catch(FailingHttpStatusCodeException e)
+            {
+                // Rejecting with view causes 500 error...
+            }
+            /*
+            HtmlPage editSitePage = wcUser.goTo(String.format("%s/%s", UpdateSitesManager.URL, site.getId()));
+            HtmlForm editSiteForm = editSitePage.getFormByName("editSiteForm");
+            try
+            {
+                submit(editSiteForm);
+                fail("Access without privilege must rejected");
+            }
+            catch(FailingHttpStatusCodeException e)
+            {
+                assertEquals("Access without privilege must rejected with 403 Forbidden", 403, e.getStatusCode());
+            }
+            */
+        }
+        
+        // delete
+        wcAdmin.goTo(String.format("%s/%s/delete", UpdateSitesManager.URL, site.getId()));
+        try
+        {
+            wcUser.goTo(String.format("%s/%s/delete", UpdateSitesManager.URL, site.getId()));
+            fail("Access without privilege must rejected");
+        }
+        catch(FailingHttpStatusCodeException e)
+        {
+            assertEquals("Access without privilege must rejected with 403 Forbidden", 403, e.getStatusCode());
         }
     }
 }

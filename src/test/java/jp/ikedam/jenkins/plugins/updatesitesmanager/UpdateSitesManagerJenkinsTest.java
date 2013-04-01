@@ -36,6 +36,7 @@ import net.sf.json.JSONObject;
 
 import org.jvnet.hudson.test.HudsonTestCase;
 import org.jvnet.hudson.test.TestExtension;
+import org.jvnet.hudson.test.recipes.LocalData;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 import org.xml.sax.SAXException;
@@ -51,18 +52,18 @@ import com.google.common.collect.Lists;
 
 
 /**
- * Tests for UpdateSiteManager, concerned with Jenkins.
+ * Tests for UpdateSitesManager, concerned with Jenkins.
  */
-public class UpdateSiteManagerJenkinsTest extends HudsonTestCase
+public class UpdateSitesManagerJenkinsTest extends HudsonTestCase
 {
-    // Test the link to UpdateSiteManager exists.
+    // Test the link to UpdateSitesManager exists.
     public void testManagementLink() throws IOException, SAXException
     {
         WebClient wc = new WebClient();
         
         HtmlPage managementPage = wc.goTo("/manage");
         assertNotNull(
-                "Link to UpdateSiteManager does not exists in Manage Jenkins page",
+                "Link to UpdateSitesManager does not exists in Manage Jenkins page",
                 managementPage.getAnchorByHref(UpdateSitesManager.URL)
         );
     }
@@ -608,4 +609,39 @@ public class UpdateSiteManagerJenkinsTest extends HudsonTestCase
             }
         }
     }
+    
+    @LocalData
+    public void testPrivilege() throws Exception
+    {
+        WebClient wcAdmin = new WebClient();
+        wcAdmin.login("admin", "admin");
+        
+        WebClient wcUser = new WebClient();
+        wcUser.setPrintContentOnFailingStatusCode(false);
+        wcUser.login("user", "user");
+        
+        wcAdmin.goTo(UpdateSitesManager.URL);
+        try
+        {
+            wcUser.goTo(UpdateSitesManager.URL);
+            fail("Access without privilege must rejected");
+        }
+        catch(FailingHttpStatusCodeException e)
+        {
+            // Rejecting with view causes 500 error...
+            //assertEquals("Access without privilege must rejected with 403 Forbidden", 403, e.getStatusCode());
+        }
+        
+        wcAdmin.goTo(String.format("%s/_add", UpdateSitesManager.URL));
+        try
+        {
+            wcUser.goTo(String.format("%s/_add", UpdateSitesManager.URL));
+            fail("Access without privilege must rejected");
+        }
+        catch(FailingHttpStatusCodeException e)
+        {
+            assertEquals("Access without privilege must rejected with 403 Forbidden", 403, e.getStatusCode());
+        }
+    }
+    
 }

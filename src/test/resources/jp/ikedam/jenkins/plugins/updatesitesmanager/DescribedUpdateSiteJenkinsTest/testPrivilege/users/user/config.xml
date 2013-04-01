@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<user>
+  <fullName>user</fullName>
+  <properties>
+    <hudson.security.HudsonPrivateSecurityRealm_-Details>
+      <!-- user -->
+      <passwordHash>ejHglz:e3ad4146d4ba1b02b2acadd4941db5d966a0c16af3b664852b14d87cc0034c2e</passwordHash>
+    </hudson.security.HudsonPrivateSecurityRealm_-Details>
+  </properties>
+</user>
