@@ -48,7 +48,6 @@ import com.gargoylesoftware.htmlunit.html.HtmlElement;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlInput;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
-import com.google.common.collect.Lists;
 
 
 /**
@@ -129,7 +128,7 @@ public class UpdateSitesManagerJenkinsTest extends HudsonTestCase
             // No update site.
             Jenkins.getInstance().getUpdateCenter().getSites().clear();
             
-            List<DescribedUpdateSite> sites = Lists.newArrayList(target.getUpdateSiteList());
+            List<DescribedUpdateSite> sites = target.getUpdateSiteList();
             assertEquals("No sites should be return!", 0, sites.size());
         }
         
@@ -151,7 +150,7 @@ public class UpdateSitesManagerJenkinsTest extends HudsonTestCase
             Jenkins.getInstance().getUpdateCenter().getSites().add(site1);
             Jenkins.getInstance().getUpdateCenter().getSites().add(site2);
             
-            List<DescribedUpdateSite> sites = Lists.newArrayList(target.getUpdateSiteList());
+            List<DescribedUpdateSite> sites = target.getUpdateSiteList();
             assertEquals("Returned sites are too short", 2, sites.size());
             assertEquals("site1 does not match", site1.getId(), sites.get(0).getId());
             assertEquals("site1 does not match", site1.getUrl(), sites.get(0).getUrl());
@@ -184,7 +183,7 @@ public class UpdateSitesManagerJenkinsTest extends HudsonTestCase
             );
             Jenkins.getInstance().getUpdateCenter().getSites().add(site);
             
-            List<DescribedUpdateSite> sites = Lists.newArrayList(target.getUpdateSiteList());
+            List<DescribedUpdateSite> sites = target.getUpdateSiteList();
             assertEquals("The number of sites does not match", 1, sites.size());
             assertSame("Subclass of DescribedUpdateSite must be passed as itself", site, sites.get(0));
         }
@@ -198,7 +197,7 @@ public class UpdateSitesManagerJenkinsTest extends HudsonTestCase
             );
             Jenkins.getInstance().getUpdateCenter().getSites().add(site);
             
-            List<DescribedUpdateSite> sites = Lists.newArrayList(target.getUpdateSiteList());
+            List<DescribedUpdateSite> sites = target.getUpdateSiteList();
             assertEquals("The number of sites does not match", 1, sites.size());
             assertEquals("UpdateSite must wrapped with DescribedUpdateSiteWrapper", DescribedUpdateSiteWrapper.class, sites.get(0).getClass());
             assertSame("UpdateSite must be retrieved", site, ((DescribedUpdateSite)sites.get(0)).getUpdateSite());
@@ -213,7 +212,7 @@ public class UpdateSitesManagerJenkinsTest extends HudsonTestCase
             );
             Jenkins.getInstance().getUpdateCenter().getSites().add(site);
             
-            List<DescribedUpdateSite> sites = Lists.newArrayList(target.getUpdateSiteList());
+            List<DescribedUpdateSite> sites = target.getUpdateSiteList();
             assertEquals("The number of sites does not match", 1, sites.size());
             assertEquals("Subclass of UpdateSite must wrapped with DescribedUpdateSiteWrapper", DescribedUpdateSiteWrapper.class, sites.get(0).getClass());
             assertSame("UpdateSite must be retrieved", site, ((DescribedUpdateSite)sites.get(0)).getUpdateSite());

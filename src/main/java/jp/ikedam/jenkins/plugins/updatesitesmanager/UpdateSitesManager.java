@@ -25,6 +25,7 @@ package jp.ikedam.jenkins.plugins.updatesitesmanager;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -41,11 +42,6 @@ import org.kohsuke.stapler.HttpRedirect;
 import org.kohsuke.stapler.HttpResponse;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
-
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 
 import hudson.Extension;
 import hudson.model.ManagementLink;
@@ -152,19 +148,14 @@ public class UpdateSitesManager extends ManagementLink
      * 
      * @return a list of UpdateSites
      */
-    public Iterable<DescribedUpdateSite> getUpdateSiteList()
+    public List<DescribedUpdateSite> getUpdateSiteList()
     {
-        return Iterables.transform(
-            Jenkins.getInstance().getUpdateCenter().getSites(),
-            new Function<UpdateSite, DescribedUpdateSite>()
-            {
-                @Override
-                public DescribedUpdateSite apply(UpdateSite input)
-                {
-                    return getUpdateSiteWithDescriptor(input);
-                }
-            }
-        );
+        List<DescribedUpdateSite> ret = new ArrayList<DescribedUpdateSite>();
+        for(UpdateSite site: Jenkins.getInstance().getUpdateCenter().getSites())
+        {
+            ret.add(getUpdateSiteWithDescriptor(site));
+        }
+        return ret;
     }
     
     /**
@@ -176,17 +167,15 @@ public class UpdateSitesManager extends ManagementLink
      */
     public List<DescribedUpdateSite.Descriptor> getUpdateSiteDescriptorList()
     {
-        return Lists.newArrayList(Iterables.filter(
-                DescribedUpdateSite.all(),
-                new Predicate<DescribedUpdateSite.Descriptor>()
-                {
-                    @Override
-                    public boolean apply(DescribedUpdateSite.Descriptor descriptor)
-                    {
-                        return descriptor.canCreateNewSite();
-                    }
-                }
-        ));
+        List<DescribedUpdateSite.Descriptor> ret = new ArrayList<DescribedUpdateSite.Descriptor>();
+        for(DescribedUpdateSite.Descriptor descriptor: DescribedUpdateSite.all())
+        {
+            if(descriptor.canCreateNewSite())
+            {
+                ret.add(descriptor);
+            }
+        }
+        return ret;
     }
     
     /**
