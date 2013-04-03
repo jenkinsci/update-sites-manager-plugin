@@ -8,11 +8,12 @@
   
   <groupId>jp.ikedam.jenkins.plugins</groupId>
   <artifactId>update-sites-manager</artifactId>
-  <version>0.1.0-SNAPSHOT</version>
+  <version>0.9.0-SNAPSHOT</version>
   <packaging>hpi</packaging>
   <name>UpdateSites Manager plugin</name>
   <description>Manages UpdateSites, which Jenkins queries for plugins.</description>
   
+  <!-- disable here when hosted in jenkins-ci.org -->
   <url>https://github.com/ikedam/update-sites-manager</url>
   
   <scm>
@@ -33,6 +34,17 @@
       <url>${internal.repo.path}/snapshots</url>
     </snapshotRepository>
   </distributionManagement>
+  <!-- /disable here when hosted in jenkins-ci.org -->
+  
+  <!-- enable here when hosted in jenkins-ci.org
+  <url>http://wiki.jenkins-ci.org/display/JENKINS/Jobcopy+Builder+plugin</url>
+  
+  <scm>
+    <connection>scm:git:git://github.com/jenkinsci/${project.artifactId}-plugin.git</connection>
+    <developerConnection>scm:git:git@github.com:jenkinsci/${project.artifactId}-plugin.git</developerConnection>
+    <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
+  </scm>
+  -->
   
   <developers>
     <developer>
@@ -40,6 +52,14 @@
       <name>IKEDA Yasuyuki</name>
     </developer>
   </developers>
+  
+  <licenses>
+    <license>
+      <name>The MIT license</name>
+      <url>http://www.opensource.org/licenses/mit-license.php</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
   
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
