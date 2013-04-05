@@ -284,7 +284,7 @@ abstract public class DescribedUpdateSite extends UpdateSite implements Describa
             return new ForwardToView(this, "delete.jelly");
         }
         
-        Jenkins.getInstance().getUpdateCenter().getSites().remove(this);
+        Jenkins.getInstance().getUpdateCenter().getSites().remove(getUpdateSite());
         Jenkins.getInstance().getUpdateCenter().save();
         
         return new HttpRedirect(".."); // ${rootURL}/updatesites/
