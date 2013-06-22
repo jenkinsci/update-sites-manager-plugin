@@ -29,7 +29,6 @@ import jenkins.model.Jenkins;
 
 import org.jvnet.hudson.test.HudsonTestCase;
 import org.jvnet.hudson.test.TestExtension;
-import org.jvnet.hudson.test.HudsonTestCase.WebClient;
 import org.jvnet.hudson.test.recipes.LocalData;
 import org.kohsuke.stapler.DataBoundConstructor;
 
