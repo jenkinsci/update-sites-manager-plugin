@@ -1,0 +1,26 @@
+{
+    "id": "ikedam-update-center-without-sign",
+    "plugins": {
+        "ldap-sasl": {
+            "buildDate": "Feb 11, 2013",
+            "dependencies": [],
+            "developers": [
+                {
+                    "developerId": "ikedam",
+                    "name": "IKEDA Yasuyuki"
+                }
+            ],
+            "excerpt": "Authenticate users using a LDAP server with SASL mechanism.",
+            "gav": "jp.ikedam.jenkins.plugins:ldap-sasl:0.9.2",
+            "name": "ldap-sasl",
+            "releaseTimestamp": "2013-02-10T18:16:26.00Z",
+            "requiredCore": "1.466",
+            "scm": "github.com",
+            "sha1": "4GcEoUL8Wx19spHzqcRHTPbZ7BU=",
+            "title": "LDAP SASL plugin",
+            "url": "http://ikedam.github.com/jenkins-update-center/releases/jp/ikedam/jenkins/plugins/ldap-sasl/0.9.2/ldap-sasl-0.9.2.hpi",
+            "version": "0.9.2"
+        }
+    },
+    "updateCenterVersion": "1"
+}
