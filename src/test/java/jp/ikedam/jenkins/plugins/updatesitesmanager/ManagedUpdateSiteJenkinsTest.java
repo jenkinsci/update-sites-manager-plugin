@@ -23,8 +23,19 @@
  */
 package jp.ikedam.jenkins.plugins.updatesitesmanager;
 
+import com.gargoylesoftware.htmlunit.HttpMethod;
+import com.gargoylesoftware.htmlunit.WebRequestSettings;
 import hudson.security.csrf.CrumbIssuer;
 import hudson.util.FormValidation;
+import jenkins.model.DownloadSettings;
+import jenkins.model.GlobalConfiguration;
+import jenkins.model.Jenkins;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
+import org.junit.Rule;
+import org.junit.Test;
+import org.jvnet.hudson.test.JenkinsRule;
+import org.kohsuke.stapler.StaplerRequest;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -33,21 +44,17 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.security.GeneralSecurityException;
 
-import jenkins.model.Jenkins;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
-import org.jvnet.hudson.test.HudsonTestCase;
-import org.kohsuke.stapler.StaplerRequest;
-
-import com.gargoylesoftware.htmlunit.HttpMethod;
-import com.gargoylesoftware.htmlunit.WebRequestSettings;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
 /**
  * Tests for ManagedUpdateSite, concerned with Jenkins.
  */
-public class ManagedUpdateSiteJenkinsTest extends HudsonTestCase
-{
+public class ManagedUpdateSiteJenkinsTest {
+    @Rule
+    public JenkinsRule jenkins = new JenkinsRule();
+
     static public class TestManagedUpdateSite extends ManagedUpdateSite
     {
         private static final long serialVersionUID = -6888318503867286760L;
@@ -98,14 +105,17 @@ public class ManagedUpdateSiteJenkinsTest extends HudsonTestCase
         }
         return new File(url.toURI());
     }
-    
+
+    @Test
     public void testDoPostBack() throws URISyntaxException, IOException, GeneralSecurityException
     {
         // CrumbIssuer causes failures in POST request.
         // I don't know why CrumbIssuer is enabled in a test environment...
         CrumbIssuer crumb = Jenkins.getInstance().getCrumbIssuer();
-        try
-        {
+
+        // By default it uses server
+        GlobalConfiguration.all().get(DownloadSettings.class).setUseBrowser(true);
+        try {
             Jenkins.getInstance().setCrumbIssuer(null);
             String caCertificate = FileUtils.readFileToString(getResource("caCertificate.crt"));
             
@@ -120,8 +130,8 @@ public class ManagedUpdateSiteJenkinsTest extends HudsonTestCase
             Jenkins.getInstance().getUpdateCenter().getSites().clear();
             Jenkins.getInstance().getUpdateCenter().getSites().add(target);
             Jenkins.getInstance().getUpdateCenter().save();
-            
-            WebClient wc = new WebClient();
+
+            JenkinsRule.WebClient wc = jenkins.createWebClient();
             WebRequestSettings wrs = new WebRequestSettings(
                     new URL(String.format("%s%s/byId/%s/postBack",
                             wc.getContextPath(),
@@ -175,7 +185,8 @@ public class ManagedUpdateSiteJenkinsTest extends HudsonTestCase
     {
         return (ManagedUpdateSite.DescriptorImpl)new ManagedUpdateSite(null, null, false, null, null, false).getDescriptor();
     }
-    
+
+    @Test
     public void testDescriptorDoCheckCaCertificate() throws FileNotFoundException, IOException, URISyntaxException
     {
         ManagedUpdateSite.DescriptorImpl descriptor = getDescriptor();
@@ -197,7 +208,8 @@ public class ManagedUpdateSiteJenkinsTest extends HudsonTestCase
             );
         }
     }
-    
+
+    @Test
     public void testDescriptorDoCheckCaCertificateError()
     {
         ManagedUpdateSite.DescriptorImpl descriptor = getDescriptor();
@@ -234,4 +246,21 @@ public class ManagedUpdateSiteJenkinsTest extends HudsonTestCase
             );
         }
     }
+
+
+    @Test
+    public void shouldValidateSiteWithoutSignIfChecked() throws IOException {
+        TestManagedUpdateSite target = new TestManagedUpdateSite(
+                "update-site-without-sign",
+                "http://localhost/update-center-without-sign.json",
+                false,
+                null,
+                "test",
+                false
+        );
+        target.setWithoutSignCheck(true);
+
+        assertThat(target.doVerifySignature().kind, equalTo(FormValidation.Kind.OK));
+    }
+
 }

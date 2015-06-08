@@ -38,11 +38,16 @@ import jenkins.model.Jenkins;
 import hudson.Extension;
 import hudson.util.FormValidation;
 
+import jenkins.util.JSONSignatureValidator;
+import net.sf.json.JSONObject;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
+
+import javax.annotation.Nonnull;
 
 /**
  * Extended UpdateSite to be managed in UpdateSitesManager.
@@ -146,7 +151,21 @@ public class ManagedUpdateSite extends DescribedUpdateSite
         
         return new File(caCertificateDir, String.format("tmp-ManageUpdateSite-%s.crt", getId()));
     }
-    
+
+    /**
+     * Should it skip any sign check?
+     */
+    private boolean withoutSignCheck;
+
+    public boolean isWithoutSignCheck() {
+        return withoutSignCheck;
+    }
+
+    @DataBoundSetter
+    public void setWithoutSignCheck(boolean withoutSignCheck) {
+        this.withoutSignCheck = withoutSignCheck;
+    }
+
     /**
      * Create a new instance
      * 
@@ -268,7 +287,21 @@ public class ManagedUpdateSite extends DescribedUpdateSite
             }
         }
     }
-    
+
+    @Nonnull
+    @Override
+    protected JSONSignatureValidator getJsonSignatureValidator() {
+        if(withoutSignCheck) {
+            return new JSONSignatureValidator(String.format("No any validation validator for %s", getId())) {
+                @Override
+                public FormValidation verifySignature(JSONObject o) throws IOException {
+                    return FormValidation.ok();
+                }
+            };
+        }
+        return super.getJsonSignatureValidator();
+    }
+
     /**
      * Descriptor for this class.
      */
@@ -302,7 +335,14 @@ public class ManagedUpdateSite extends DescribedUpdateSite
         {
             return Messages.ManagedUpdateSite_Description();
         }
-        
+
+        public FormValidation doCheckWithoutSignCheck(@QueryParameter boolean withoutSignCheck) {
+            if(withoutSignCheck) {
+                return FormValidation.warning(Messages.ManagedUpdateSite_withoutSignCheck_mitm());
+            }
+            return FormValidation.ok();
+        }
+
         /**
          * Returns whether the certificate is valid.
          * 
