@@ -23,274 +23,205 @@
  */
 package jp.ikedam.jenkins.plugins.updatesitesmanager;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import javax.servlet.ServletException;
-
-import jenkins.model.Jenkins;
-
-import net.sf.json.JSONObject;
-
-import org.apache.commons.lang.StringUtils;
-import org.kohsuke.stapler.ForwardToView;
-import org.kohsuke.stapler.HttpRedirect;
-import org.kohsuke.stapler.HttpResponse;
-import org.kohsuke.stapler.StaplerRequest;
-import org.kohsuke.stapler.StaplerResponse;
-
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
 import hudson.Extension;
-import hudson.model.ManagementLink;
-import hudson.model.Descriptor;
 import hudson.model.Descriptor.FormException;
+import hudson.model.ManagementLink;
 import hudson.model.UpdateSite;
+import jenkins.model.Jenkins;
+import jp.ikedam.jenkins.plugins.updatesitesmanager.internal.IgnoreNotPOST;
+import jp.ikedam.jenkins.plugins.updatesitesmanager.internal.OnlyAdminister;
+import jp.ikedam.jenkins.plugins.updatesitesmanager.internal.Sites;
+import org.apache.commons.lang.StringUtils;
+import org.kohsuke.stapler.HttpResponse;
+import org.kohsuke.stapler.HttpResponses;
+
+import javax.annotation.Nullable;
+import javax.servlet.ServletException;
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.List;
+
+import static com.google.common.base.Predicates.not;
+import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.collect.Sets.newHashSet;
 
 /**
- * Pages for manage UpdateSites.
- * 
- * Provides following pages.
+ * Page for manage UpdateSites.
+ *
+ * Provides following page.
  * <ul>
- *   <li>Manage UpdateSites, shown in Manage Jenkins page</li>
- *   <li>Add New Site</li>
+ * <li>Manage UpdateSites, shown in Manage Jenkins page</li>
  * </ul>
- * 
- * And provides access to each updatesite configuration page.
  */
 @Extension(ordinal = Integer.MAX_VALUE - 410)   // show just after Manage Plugins (1.489 and later)
-public class UpdateSitesManager extends ManagementLink
-{
-    private Logger LOGGER = Logger.getLogger(UpdateSitesManager.class.getName());
-    
+public class UpdateSitesManager extends ManagementLink {
+
     public final static String URL = "updatesites";
-    
+
     /**
      * Return the name of the link shown in Manage Jenkins page.
-     * 
+     *
      * @return the name of the link.
      * @see hudson.model.Action#getDisplayName()
      */
     @Override
-    public String getDisplayName()
-    {
+    public String getDisplayName() {
         return Messages.UpdateSitesManager_DisplayName();
     }
-    
+
     /**
      * Return the icon file name shown in Manage Jenkins page.
-     * 
+     *
      * @return icon file name
      * @see hudson.model.ManagementLink#getIconFileName()
      */
     @Override
-    public String getIconFileName()
-    {
+    public String getIconFileName() {
         // TODO: create a more appropriate icon.
         return "plugin.gif";
     }
-    
+
     /**
      * Return the description shown in Manage Jenkins page.
-     * 
+     *
      * @return the description
      * @see hudson.model.ManagementLink#getDescription()
      */
     @Override
-    public String getDescription()
-    {
+    public String getDescription() {
         return Messages.UpdateSitesManager_Description();
     }
-    
+
     /**
      * Return the name used in url.
-     * 
+     *
      * @return the name used in url.
      * @see hudson.model.ManagementLink#getUrlName()
      */
     @Override
-    public String getUrlName()
-    {
+    public String getUrlName() {
         return URL;
     }
-    
+
     /**
-     * Return DescribedUpdateSite for an UpdateSite.
-     * 
-     * DescribedUpdateSite is an UpdateSite with Descriptor for used in views.
-     * If passed UpdateSite is an instance of DescribedUpdateSite, simply returns itself.
-     * If passed UpdateSite is not an instance of DescribedUpdateSite, wrap it with DescribedUpdateSiteWrapper.
-     * 
-     * @param updateSite an UpdateSite
-     * @return a DescribedUpdateSite
-     */
-    protected DescribedUpdateSite getUpdateSiteWithDescriptor(UpdateSite updateSite)
-    {
-        if(updateSite == null)
-        {
-            return null;
-        }
-        
-        if(updateSite instanceof DescribedUpdateSite)
-        {
-            return (DescribedUpdateSite)updateSite;
-        }
-        
-        return new DescribedUpdateSiteWrapper(updateSite);
-    }
-    
-    /**
-     * Return a list of UpdateSites registered in Jenkins.
-     * 
-     * Each UpdateSites is wrapped to DescribedUpdateSite.
-     * 
+     * Return a list of custom UpdateSites registered in Jenkins.
+     *
      * @return a list of UpdateSites
      */
-    public List<DescribedUpdateSite> getUpdateSiteList()
-    {
-        List<DescribedUpdateSite> ret = new ArrayList<DescribedUpdateSite>();
-        for(UpdateSite site: Jenkins.getInstance().getUpdateCenter().getSites())
-        {
-            ret.add(getUpdateSiteWithDescriptor(site));
-        }
-        return ret;
+    public List<UpdateSite> getManagedUpdateSiteList() {
+        return newArrayList(Iterables.filter(
+                Jenkins.getInstance().getUpdateCenter().getSites(),
+                new IsSiteManaged())
+        );
     }
-    
+
+    /**
+     * Return a list of not custom UpdateSites registered in Jenkins.
+     *
+     * @return a list of UpdateSites
+     */
+    public List<UpdateSite> getNotManagedUpdateSiteList() {
+        return newArrayList(Iterables.filter(
+                Jenkins.getInstance().getUpdateCenter().getSites(),
+                not(new IsSiteManaged())
+        ));
+    }
+
     /**
      * Returns all the registered DescribedUpdateSite.
-     * 
+     *
      * Only returns DescribedUpdateSite that can be used to create a new site.
-     * 
+     *
      * @return a list of Desctiptor of DescribedUpdateSite.
      */
-    public List<DescribedUpdateSite.Descriptor> getUpdateSiteDescriptorList()
-    {
-        List<DescribedUpdateSite.Descriptor> ret = new ArrayList<DescribedUpdateSite.Descriptor>();
-        for(DescribedUpdateSite.Descriptor descriptor: DescribedUpdateSite.all())
-        {
-            if(descriptor.canCreateNewSite())
-            {
-                ret.add(descriptor);
-            }
-        }
-        return ret;
+    public List<DescribedUpdateSite.Descriptor> getUpdateSiteDescriptorList() {
+        return newArrayList(Iterables.filter(
+                DescribedUpdateSite.all(),
+                new CanCreateNewSiteFilter()
+        ));
     }
-    
+
     /**
-     * Create a new UpdateSite.
-     * 
-     * Screen transition is as following:
-     * <ol>
-     *   <li>Click "Add New Site" in /updatesites/.<li>
-     *   <li>newSiteSelect.jelly: Select UpdateSite type. This page is shown if there are more than one DescribedUpdateSite is available.
-     *   <li>newSite.jelly: Fill Form.
-     *   <li>Post Form. /updatesites/ are shown again.
-     * </ol>
-     * 
-     * @param req
-     * @param rsp
-     * @return
-     * @throws IOException
-     * @throws UnsupportedEncodingException
-     * @throws ServletException
-     * @throws FormException
+     * Update all registered sites with concatenation of managed and not managed
+     * @param managed managed sites form submitted form
+     * @return redirect to same url if all ok
      */
-    public HttpResponse do_add(StaplerRequest req, StaplerResponse rsp) throws IOException, UnsupportedEncodingException, ServletException, FormException
-    {
-        // Only administrator can create a new site.
-        Jenkins.getInstance().checkPermission(Jenkins.ADMINISTER);
-        
-        Descriptor<DescribedUpdateSite> descriptor = null;
-        
-        List<DescribedUpdateSite.Descriptor> descriptorList = getUpdateSiteDescriptorList();
-        
-        if(req.getParameter("stapler-class") != null)
-        {
-            try
-            {
-                @SuppressWarnings("unchecked")
-                Class<DescribedUpdateSite.Descriptor> clazz = (Class<DescribedUpdateSite.Descriptor>)Class.forName(req.getParameter("stapler-class"));
-                descriptor = Jenkins.getInstance().getDescriptorByType(clazz);
-            }
-            catch(ClassCastException e)
-            {
-                LOGGER.log(Level.WARNING, String.format("Bad stapler-class: %s", req.getParameter("stapler-class")), e);
-            }
-            catch (ClassNotFoundException e)
-            {
-                LOGGER.log(Level.WARNING, String.format("Bad stapler-class: %s", req.getParameter("stapler-class")), e);
-            }
-            
+    @OnlyAdminister
+    @IgnoreNotPOST
+    @SuppressWarnings("unused")
+    public HttpResponse doUpdate(@Sites List<UpdateSite> managed) throws ServletException, IOException, FormException {
+        List<UpdateSite> newSitesList = newArrayList(Iterables.concat(getNotManagedUpdateSiteList(), managed));
+
+        shouldNotContainDuplicatedIds(newSitesList);
+        shouldNotContainBlankIds(newSitesList);
+
+        Jenkins.getInstance().getUpdateCenter().getSites().replaceBy(newSitesList);
+        Jenkins.getInstance().getUpdateCenter().save();
+
+        return HttpResponses.redirectViaContextPath("/manage");
+    }
+
+    /**
+     * Check method for duplicated ids of submitted sites
+     */
+    private static void shouldNotContainDuplicatedIds(List<UpdateSite> sites) throws FormException {
+        HashSet<String> set = newHashSet(Iterables.transform(sites, new IdExtractor()));
+
+        if (set.size() != sites.size()) {
+            throw new FormException("id is duplicated", "id");
         }
-        
-        if(descriptor == null && descriptorList.size() == 1)
-        {
-            descriptor = descriptorList.get(0);
-        }
-        
-        if(descriptor == null)
-        {
-            // There are more than one DescribedUpdateSite is available,
-            // so let the user to select which to create.
-            return new ForwardToView(this, "newSiteSelect.jelly");
-        }
-        
-        if(!"POST".equals(req.getMethod()))
-        {
-            // Show form.
-            req.setAttribute("instance", null);
-            req.setAttribute("descriptor", descriptor);
-            return new ForwardToView(this, "newSite.jelly");
-        }
-        
-        // Create a new site.
-        JSONObject json = req.getSubmittedForm();
-        DescribedUpdateSite newSite = descriptor.newInstance(req, json);
-        
-        // Check ID filled
-        if(StringUtils.isBlank(newSite.getId()))
-        {
-            // ID is empty.
+    }
+
+    /**
+     * Check method for blank ids of submitted sites
+     */
+    private static void shouldNotContainBlankIds(List<UpdateSite> sites) throws FormException {
+        if (Iterables.tryFind(sites, new WithBlankId()).isPresent()) {
             throw new FormException("id is empty", "id");
         }
-        
-        // Check ID duplication.
-        for(UpdateSite site: Jenkins.getInstance().getUpdateCenter().getSites())
-        {
-            if(site.getId().equals(newSite.getId()))
-            {
-                // ID is duplicated.
-                throw new FormException("id is duplicated", "id");
-            }
-        }
-        
-        Jenkins.getInstance().getUpdateCenter().getSites().add(newSite.getUpdateSite());
-        Jenkins.getInstance().getUpdateCenter().save();
-        
-        return new HttpRedirect("."); // ${rootURL}/updatesites/
     }
-    
+
     /**
-     * Allow users to access each UpdateSite page.
-     * 
-     * @param token the token from URL. that is, ${rootURL}/updatesites/${toekn}/blahblah
-     * @return
+     * This predicate helps to filter which sites should be shown on UI as editable/not editable 
      */
-    public DescribedUpdateSite getDynamic(String token)
-    {
-        if(StringUtils.isEmpty(token))
-        {
-            return null;
+    public static class IsSiteManaged implements Predicate<UpdateSite> {
+        @Override
+        public boolean apply(@Nullable UpdateSite input) {
+            return input instanceof DescribedUpdateSite;
         }
-        for(UpdateSite site: Jenkins.getInstance().getUpdateCenter().getSites())
-        {
-            if(token.equals(site.getId()))
-            {
-                return getUpdateSiteWithDescriptor(site);
-            }
+    }
+
+    /**
+     * Helps to check duplication
+     */
+    public static class IdExtractor implements Function<UpdateSite, String> {
+        @Override
+        public String apply(UpdateSite site) {
+            return site.getId();
         }
-        return null;
+    }
+
+    /**
+     * Helps to check ids is blank
+     */
+    public static class WithBlankId implements Predicate<UpdateSite> {
+        @Override
+        public boolean apply(UpdateSite input) {
+            return StringUtils.isBlank(input.getId());
+
+        }
+    }
+
+    /**
+     * Should show only descriptors with ability to create new sites
+     */
+    public static class CanCreateNewSiteFilter implements Predicate<DescribedUpdateSite.Descriptor> {
+        @Override
+        public boolean apply(DescribedUpdateSite.Descriptor descriptor) {
+            return descriptor.canCreateNewSite();
+        }
     }
 }

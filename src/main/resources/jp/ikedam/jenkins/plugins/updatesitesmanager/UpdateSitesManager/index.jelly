@@ -22,39 +22,44 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 -->
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
-<!--
-  shown when accessed /updatesites/
--->
-<l:layout title="${it.displayName}" permission="${app.ADMINISTER}" norefresh="true">
-  <st:include page="sidepanel.jelly"/>
-  <l:header>
-    <style type="text/css">
-      #update-sites .disabled
-      {
-        text-decoration: line-through;
-      }
-    </style>
-  </l:header>
-  <l:main-panel>
-    <h1>
-      <img src="${imagesURL}/48x48/${it.iconFileName}" alt=""/>${it.displayName}
-    </h1>
-    <table id="update-sites" class="sortable pane bigtable">
-      <tr>
-        <th>${%ID}</th>
-        <th>${%URL}</th>
-        <th>${%Note}</th>
-      </tr>
-      <j:forEach var="site" items="${it.updateSiteList}">
-        <tr id="site_${site.id}" class="${site.disabled?'disabled':''}">
-          <td><a href="${site.pageUrl}" class="model-link">${site.id}</a></td>
-          <td>${site.url}</td>
-          <td>${site.note}</td>
-        </tr>
-      </j:forEach>
-    </table>
-    <a id="add-new-site-link" href="_add" title="${%Add New Site}">${%Add New Site}</a>
-  </l:main-panel>
-</l:layout>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:l="/lib/layout" xmlns:f="/lib/form">
+    <!--
+      shown when accessed /updatesites/
+    -->
+    <l:layout title="${it.displayName}" permission="${app.ADMINISTER}" norefresh="true">
+        <st:include page="sidepanel.jelly"/>
+        <l:main-panel>
+            <h1>
+                <img src="${imagesURL}/48x48/${it.iconFileName}" alt=""/>${it.displayName}
+            </h1>
+
+            <h2>
+                Not managed update sites
+            </h2>
+            <div class="warning">${%These sites cannot be configured with UpdateSitesManager. Please visit the configuration pages dedicated for sites.}</div>
+
+            <ul>
+                <f:repeatable var="site" noAddButton="true" items="${it.notManagedUpdateSiteList}">
+                    <li>
+                        <h3>${site.id}</h3>
+                        <div>${site.url}</div>
+                    </li>
+                </f:repeatable>
+            </ul>
+
+            <h2>
+                Custom update sites
+            </h2>
+
+            <f:form name="sitesForm" method="post" action="update">
+                <f:block>
+                    <f:hetero-list hasHeader="true" name="sites" items="${it.managedUpdateSiteList}"
+                                   descriptors="${it.updateSiteDescriptorList}"/>
+                </f:block>
+                <f:block>
+                    <f:submit value="Save"/>
+                </f:block>
+            </f:form>
+        </l:main-panel>
+    </l:layout>
 </j:jelly>
