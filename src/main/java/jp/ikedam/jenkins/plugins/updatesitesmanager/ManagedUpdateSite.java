@@ -24,25 +24,22 @@
 package jp.ikedam.jenkins.plugins.updatesitesmanager;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.security.GeneralSecurityException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import jenkins.model.Jenkins;
-
 import hudson.Extension;
 import hudson.util.FormValidation;
 
-import org.apache.commons.io.FileUtils;
+import jenkins.util.JSONSignatureValidator;
+import jp.ikedam.jenkins.plugins.updatesitesmanager.internal.ExtendedCertJsonSignValidator;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
-import org.kohsuke.stapler.StaplerRequest;
+
+import javax.annotation.Nonnull;
 
 /**
  * Extended UpdateSite to be managed in UpdateSitesManager.
@@ -54,10 +51,7 @@ import org.kohsuke.stapler.StaplerRequest;
  *   <li>can set a CA certificate for the signature of the site.</li>
  * </ul>
  * 
- * The CA certificate is written to a temporary file under ${JENKINS_HOME}/update-center-rootCAs/ .
- * I think it is a better implementation to override UpdateSite#verifySignature,
- * but it is private method.
- * Re-implementing doPostBack results to re-implement whole the UpdateSite.
+ * The CA certificate is written as additional trust anchor dynamically
  */
 public class ManagedUpdateSite extends DescribedUpdateSite
 {
@@ -130,24 +124,6 @@ public class ManagedUpdateSite extends DescribedUpdateSite
     }
     
     /**
-     * Returns the path to the CA certificate file.
-     * 
-     * The file to store the CA certificate temporary.
-     * 
-     * @return the path to the CA certificate file
-     */
-    protected File getCaCertificateFile()
-    {
-        File caCertificateDir = new File(Jenkins.getInstance().getRootDir(), "update-center-rootCAs");
-        if(!caCertificateDir.exists())
-        {
-            assert(caCertificateDir.mkdir());
-        }
-        
-        return new File(caCertificateDir, String.format("tmp-ManageUpdateSite-%s.crt", getId()));
-    }
-    
-    /**
      * Create a new instance
      * 
      * @param id
@@ -174,98 +150,18 @@ public class ManagedUpdateSite extends DescribedUpdateSite
     }
     
     /**
-     * Process update-center.json.
-     * 
-     * If a CA certificate is set, write it to file and make it ready to verify the signature.
-     * 
-     * @param req
-     * @return FormValidation object
-     * @throws IOException
-     * @throws GeneralSecurityException
-     * @see hudson.model.UpdateSite#doPostBack(org.kohsuke.stapler.StaplerRequest)
+     * Verifier for the signature of downloaded update-center.json.
+     *
+     * @return JSONSignatureValidator object with additional cert as anchor if enabled
      */
+    @Nonnull
     @Override
-    public FormValidation doPostBack(StaplerRequest req) throws IOException,
-            GeneralSecurityException
+    protected JSONSignatureValidator getJsonSignatureValidator()
     {
-        if(isUseCaCertificate())
-        {
-            return doPostBackWithCaCertificate(req);
-        }
-        
-        return super.doPostBack(req);
-    }
-    
-    /**
-     * Uses custom CA certificate to process update-center.json.
-     * 
-     * To avoid having the certificate file overwritten by another thread,
-     * this method is synchronized.
-     * 
-     * @param req
-     * @return FormValidation object
-     * @throws IOException
-     * @throws GeneralSecurityException
-     */
-    private synchronized FormValidation doPostBackWithCaCertificate(StaplerRequest req)
-            throws IOException, GeneralSecurityException
-    {
-        File caFile = getCaCertificateFile();
-        try
-        {
-            FileUtils.writeStringToFile(getCaCertificateFile(), getCaCertificate());
-            return super.doPostBack(req);
-        }
-        finally
-        {
-            if(caFile.exists())
-            {
-                caFile.delete();
-            }
-        }
-    }
-    
-    /**
-     * Verify the signature of downloaded update-center.json.
-     * 
-     * @return FormValidation object.
-     * @throws IOException
-     * @see hudson.model.UpdateSite#doVerifySignature()
-     */
-    @Override
-    public FormValidation doVerifySignature() throws IOException
-    {
-        if(isUseCaCertificate())
-        {
-            return doVerifySignatureWithCaCertificate();
-        }
-        
-        return super.doVerifySignature();
-    }
-    
-    /**
-     * Verify the signature with custom CA certificate.
-     * 
-     * To avoid having the certificate file overwritten by another thread,
-     * this method is synchronized.
-     * 
-     * @return FormValidation object.
-     * @throws IOException
-     */
-    private synchronized FormValidation doVerifySignatureWithCaCertificate() throws IOException
-    {
-        File caFile = getCaCertificateFile();
-        try
-        {
-            FileUtils.writeStringToFile(getCaCertificateFile(), getCaCertificate());
-            return super.doVerifySignature();
-        }
-        finally
-        {
-            if(caFile.exists())
-            {
-                caFile.delete();
-            }
+        if (isUseCaCertificate()) {
+            return new ExtendedCertJsonSignValidator(getId(), getCaCertificate());
+        } else {
+            return super.getJsonSignatureValidator();
         }
     }
     
@@ -352,5 +248,5 @@ public class ManagedUpdateSite extends DescribedUpdateSite
             return FormValidation.ok();
         }
         
-    };
+    }
 }

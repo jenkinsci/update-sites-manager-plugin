@@ -23,7 +23,6 @@
  */
 package jp.ikedam.jenkins.plugins.updatesitesmanager;
 
-import hudson.security.csrf.CrumbIssuer;
 import hudson.util.FormValidation;
 
 import java.io.File;
@@ -33,15 +32,11 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.security.GeneralSecurityException;
 
-import jenkins.model.Jenkins;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jvnet.hudson.test.HudsonTestCase;
 import org.kohsuke.stapler.StaplerRequest;
-
-import com.gargoylesoftware.htmlunit.HttpMethod;
-import com.gargoylesoftware.htmlunit.WebRequestSettings;
 
 /**
  * Tests for ManagedUpdateSite, concerned with Jenkins.
@@ -97,78 +92,6 @@ public class ManagedUpdateSiteJenkinsTest extends HudsonTestCase
             throw new FileNotFoundException(String.format("Not found: %s", filename));
         }
         return new File(url.toURI());
-    }
-    
-    public void testDoPostBack() throws URISyntaxException, IOException, GeneralSecurityException
-    {
-        // CrumbIssuer causes failures in POST request.
-        // I don't know why CrumbIssuer is enabled in a test environment...
-        CrumbIssuer crumb = Jenkins.getInstance().getCrumbIssuer();
-        try
-        {
-            Jenkins.getInstance().setCrumbIssuer(null);
-            String caCertificate = FileUtils.readFileToString(getResource("caCertificate.crt"));
-            
-            TestManagedUpdateSite target = new TestManagedUpdateSite(
-                    "test",
-                    "http://localhost/update-center.json",
-                    false,
-                    null,
-                    "test",
-                    false
-            );
-            Jenkins.getInstance().getUpdateCenter().getSites().clear();
-            Jenkins.getInstance().getUpdateCenter().getSites().add(target);
-            Jenkins.getInstance().getUpdateCenter().save();
-            
-            WebClient wc = new WebClient();
-            WebRequestSettings wrs = new WebRequestSettings(
-                    new URL(String.format("%s%s/byId/%s/postBack",
-                            wc.getContextPath(),
-                            Jenkins.getInstance().getUpdateCenter().getSearchUrl(),
-                            target.getId()
-                    )),
-                    HttpMethod.POST
-            );
-            wrs.setAdditionalHeader("Content-Type", "application/json; charset=UTF-8");
-            wrs.setRequestBody(FileUtils.readFileToString(getResource("update-center.json"), "UTF-8"));
-            
-            {
-                target.setDoPostBackResult(null);
-                wc.getPage(wrs);
-                assertEquals(
-                        "Accessing update center with no certificate must fail",
-                        FormValidation.Kind.ERROR,
-                        target.getDoPostBackResult().kind
-                );
-            }
-            
-            {
-                target.setCaCertificate(caCertificate);
-                target.setDoPostBackResult(null);
-                wc.getPage(wrs);
-                assertEquals(
-                        "Accessing update center with a proper certificate must succeed",
-                        FormValidation.Kind.OK,
-                        target.getDoPostBackResult().kind
-                );
-            }
-            
-            {
-                target.setCaCertificate(null);
-                target.setDoPostBackResult(null);
-                wc.getPage(wrs);
-                assertEquals(
-                        "Accessing update center with no certificate must fail",
-                        FormValidation.Kind.ERROR,
-                        target.getDoPostBackResult().kind
-                );
-            }
-        }
-        finally
-        {
-            Jenkins.getInstance().setCrumbIssuer(crumb);
-        }
     }
     
     private ManagedUpdateSite.DescriptorImpl getDescriptor()
