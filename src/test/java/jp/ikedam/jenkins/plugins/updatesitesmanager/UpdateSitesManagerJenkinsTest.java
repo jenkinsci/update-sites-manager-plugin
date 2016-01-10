@@ -435,6 +435,7 @@ public class UpdateSitesManagerJenkinsTest extends HudsonTestCase
         assertTrue("This test must run with more than one UpdateSite Descriptors registered.", 1 < target.getUpdateSiteDescriptorList().size());
         
         WebClient wc = new WebClient();
+        wc.setPrintContentOnFailingStatusCode(false);
         
         // Post without id.
         {
@@ -616,6 +617,7 @@ public class UpdateSitesManagerJenkinsTest extends HudsonTestCase
         wcAdmin.login("admin", "admin");
         
         WebClient wcUser = new WebClient();
+        wcUser.setPrintContentOnFailingStatusCode(false);
         wcUser.login("user", "user");
         
         wcAdmin.goTo(UpdateSitesManager.URL);

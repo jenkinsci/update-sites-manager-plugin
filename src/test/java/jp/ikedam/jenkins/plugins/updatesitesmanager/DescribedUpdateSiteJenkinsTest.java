@@ -172,6 +172,7 @@ public class DescribedUpdateSiteJenkinsTest extends HudsonTestCase
         // duplicate id
         {
             WebClient wc = new WebClient();
+            wc.setPrintContentOnFailingStatusCode(false);
             
             HtmlPage editSitePage = wc.goTo(String.format("%s/%s", UpdateSitesManager.URL, target.getPageUrl()));
             
@@ -193,6 +194,7 @@ public class DescribedUpdateSiteJenkinsTest extends HudsonTestCase
         // cannot configure for editable
         {
             WebClient wc = new WebClient();
+            wc.setPrintContentOnFailingStatusCode(false);
             
             HtmlPage editSitePage = wc.goTo(String.format("%s/%s", UpdateSitesManager.URL, target.getPageUrl()));
             
@@ -215,6 +217,7 @@ public class DescribedUpdateSiteJenkinsTest extends HudsonTestCase
             editSiteForm = editSitePage.getFormByName("editSiteForm");
             
             assertEquals("no button must exists", 0, editSiteForm.getHtmlElementsByTagName("button").size());
+            assertEquals("no button must exists", 0, editSiteForm.getSubmitButtons().size());
             
             target.setEditable(true);
         }
@@ -311,6 +314,7 @@ public class DescribedUpdateSiteJenkinsTest extends HudsonTestCase
             int initialSize = Jenkins.getInstance().getUpdateCenter().getSites().size();
             
             WebClient wc = new WebClient();
+            wc.setPrintContentOnFailingStatusCode(false);
             
             HtmlPage deleteSitePage = wc.goTo(String.format("%s/%s/delete", UpdateSitesManager.URL, target.getPageUrl()));
             assertEquals("UpdateSite must not be deleted yet.", initialSize, Jenkins.getInstance().getUpdateCenter().getSites().size());
@@ -358,6 +362,7 @@ public class DescribedUpdateSiteJenkinsTest extends HudsonTestCase
         wcAdmin.login("admin", "admin");
         
         WebClient wcUser = new WebClient();
+        wcUser.setPrintContentOnFailingStatusCode(false);
         wcUser.login("user", "user");
         
         // configure

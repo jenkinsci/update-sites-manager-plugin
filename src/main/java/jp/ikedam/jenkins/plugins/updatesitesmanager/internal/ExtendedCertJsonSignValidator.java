@@ -34,11 +34,18 @@ public class ExtendedCertJsonSignValidator extends JSONSignatureValidator {
     @Override
     protected Set<TrustAnchor> loadTrustAnchors(CertificateFactory cf) throws IOException {
         Set<TrustAnchor> trustAnchors = super.loadTrustAnchors(cf);
-        try (InputStream stream = new StringInputStream(cert)) {
+        InputStream stream = null;
+        try {
+            stream = new StringInputStream(cert);
             Certificate certificate = cf.generateCertificate(stream);
             trustAnchors.add(new TrustAnchor((X509Certificate) certificate, null));
         } catch (CertificateException e) {
             LOGGER.log(Level.SEVERE, e.getMessage(), e);
+        } finally {
+            if (stream != null) {
+                stream.close();
+                stream = null;
+            }
         }
         return trustAnchors;
     }
