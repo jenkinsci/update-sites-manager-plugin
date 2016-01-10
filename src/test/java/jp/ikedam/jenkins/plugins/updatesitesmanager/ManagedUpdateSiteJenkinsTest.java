@@ -247,8 +247,21 @@ public class ManagedUpdateSiteJenkinsTest extends HudsonTestCase
                     false
             );
             jenkins.getUpdateCenter().getSites().clear();
+            
+            {
+                target.setCaCertificate(null);
+                HttpResponse rsp = jenkins.getPluginManager().doCheckUpdatesServer();
+                if (rsp instanceof FormValidation) {
+                    // this fails with Jenkins < 1.600, Jenkins < 1.596.1
+                    assertEquals(
+                            "Accessing update center without any update sites should succeed",
+                            FormValidation.Kind.OK,
+                            ((FormValidation)rsp).kind
+                    );
+                }
+            }
+            
             jenkins.getUpdateCenter().getSites().add(target);
-            jenkins.getUpdateCenter().save();
             
             {
                 target.setCaCertificate(null);
