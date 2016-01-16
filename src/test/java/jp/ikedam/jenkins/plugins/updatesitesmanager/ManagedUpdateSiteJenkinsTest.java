@@ -33,12 +33,22 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.security.GeneralSecurityException;
 
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import jenkins.model.DownloadSettings;
 import jenkins.model.Jenkins;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jvnet.hudson.test.HudsonTestCase;
+import org.kohsuke.stapler.HttpResponse;
 import org.kohsuke.stapler.StaplerRequest;
+import org.mortbay.jetty.HttpConnection;
+import org.mortbay.jetty.Server;
+import org.mortbay.jetty.bio.SocketConnector;
+import org.mortbay.jetty.handler.AbstractHandler;
 
 import com.gargoylesoftware.htmlunit.HttpMethod;
 import com.gargoylesoftware.htmlunit.WebRequestSettings;
@@ -48,6 +58,17 @@ import com.gargoylesoftware.htmlunit.WebRequestSettings;
  */
 public class ManagedUpdateSiteJenkinsTest extends HudsonTestCase
 {
+    private Server server;
+    private URL baseUrl;
+    
+    @Override
+    protected void tearDown() throws Exception {
+        if (server != null) {
+            server.stop();
+        }
+        super.tearDown();
+    }
+    
     static public class TestManagedUpdateSite extends ManagedUpdateSite
     {
         private static final long serialVersionUID = -6888318503867286760L;
@@ -104,9 +125,14 @@ public class ManagedUpdateSiteJenkinsTest extends HudsonTestCase
         // CrumbIssuer causes failures in POST request.
         // I don't know why CrumbIssuer is enabled in a test environment...
         CrumbIssuer crumb = Jenkins.getInstance().getCrumbIssuer();
+        
+        // Jenkins >= 1.600 defaults to use server-based download.
+        // Ensure to use client-based download.
+        boolean isUseBrowser = DownloadSettings.get().isUseBrowser();
         try
         {
             Jenkins.getInstance().setCrumbIssuer(null);
+            DownloadSettings.get().setUseBrowser(true);
             String caCertificate = FileUtils.readFileToString(getResource("caCertificate.crt"));
             
             TestManagedUpdateSite target = new TestManagedUpdateSite(
@@ -167,7 +193,115 @@ public class ManagedUpdateSiteJenkinsTest extends HudsonTestCase
         }
         finally
         {
+            DownloadSettings.get().setUseBrowser(isUseBrowser);
             Jenkins.getInstance().setCrumbIssuer(crumb);
+        }
+    }
+    
+    public void setUpWebServer() throws Exception {
+        server = new Server();
+        SocketConnector connector = new SocketConnector();
+        server.addConnector(connector);
+        server.setHandler(new AbstractHandler() {
+            @Override
+            public void handle(
+                String target, HttpServletRequest request,
+                HttpServletResponse response, int dispatch
+            ) throws IOException, ServletException
+            {
+                String responseBody = null;
+                try {
+                    responseBody = FileUtils.readFileToString(getResource(target), "UTF-8");
+                } catch(URISyntaxException e) {
+                    HttpConnection.getCurrentConnection().getRequest().setHandled(true);
+                    response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                }
+                if (responseBody != null) {
+                    HttpConnection.getCurrentConnection().getRequest().setHandled(true);
+                    response.setContentType("text/plain; charset=utf-8");
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    response.getOutputStream().write(responseBody.getBytes());
+                }
+            }
+        });
+        server.start();
+        baseUrl = new URL("http", "localhost", connector.getLocalPort(), "");
+    }
+    
+    public void testDoCheckUpdateServer() throws Exception {
+        setUpWebServer();
+        
+        // Ensure to use server-based download.
+        boolean isUseBrowser = DownloadSettings.get().isUseBrowser();
+        try
+        {
+            DownloadSettings.get().setUseBrowser(false);
+            String caCertificate = FileUtils.readFileToString(getResource("caCertificate.crt"));
+            
+            TestManagedUpdateSite target = new TestManagedUpdateSite(
+                    "test",
+                    new URL(baseUrl, "update-center.json").toExternalForm(),
+                    false,
+                    null,
+                    "test",
+                    false
+            );
+            jenkins.getUpdateCenter().getSites().clear();
+            
+            {
+                target.setCaCertificate(null);
+                HttpResponse rsp = jenkins.getPluginManager().doCheckUpdatesServer();
+                if (rsp instanceof FormValidation) {
+                    // this fails with Jenkins < 1.600, Jenkins < 1.596.1
+                    assertEquals(
+                            "Accessing update center without any update sites should succeed",
+                            FormValidation.Kind.OK,
+                            ((FormValidation)rsp).kind
+                    );
+                }
+            }
+            
+            jenkins.getUpdateCenter().getSites().add(target);
+            
+            {
+                target.setCaCertificate(null);
+                HttpResponse rsp = jenkins.getPluginManager().doCheckUpdatesServer();
+                if (rsp instanceof FormValidation) {
+                    assertEquals(
+                            "Accessing update center with no certificate must fail",
+                            FormValidation.Kind.ERROR,
+                            ((FormValidation)rsp).kind
+                    );
+                }
+            }
+            
+            {
+                target.setCaCertificate(caCertificate);
+                HttpResponse rsp = jenkins.getPluginManager().doCheckUpdatesServer();
+                if (rsp instanceof FormValidation) {
+                    assertEquals(
+                            "Accessing update center with a proper certificate must succeed",
+                            FormValidation.Kind.OK,
+                            ((FormValidation)rsp).kind
+                    );
+                }
+            }
+            
+            {
+                target.setCaCertificate(null);
+                HttpResponse rsp = jenkins.getPluginManager().doCheckUpdatesServer();
+                if (rsp instanceof FormValidation) {
+                    assertEquals(
+                            "Accessing update center with no certificate must fail",
+                            FormValidation.Kind.ERROR,
+                            ((FormValidation)rsp).kind
+                    );
+                }
+            }
+        }
+        finally
+        {
+            DownloadSettings.get().setUseBrowser(isUseBrowser);
         }
     }
     

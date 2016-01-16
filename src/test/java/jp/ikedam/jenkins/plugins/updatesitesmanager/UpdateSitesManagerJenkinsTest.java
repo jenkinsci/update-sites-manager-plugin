@@ -23,6 +23,7 @@
  */
 package jp.ikedam.jenkins.plugins.updatesitesmanager;
 
+import com.gargoylesoftware.htmlunit.html.DomElement;
 import hudson.model.Describable;
 import hudson.model.UpdateSite;
 import hudson.model.Descriptor;
@@ -76,7 +77,7 @@ public class UpdateSitesManagerJenkinsTest extends HudsonTestCase
         WebClient wc = new WebClient();
         
         HtmlPage updateSitesPage = wc.goTo(UpdateSitesManager.URL);
-        HtmlElement table = updateSitesPage.getElementById("update-sites");
+        DomElement table = updateSitesPage.getElementById("update-sites");
         DomNodeList<HtmlElement> trs = table.getElementsByTagName("tr");
         assertEquals(
             "There are entries even when no updatesites available.",
@@ -108,7 +109,7 @@ public class UpdateSitesManagerJenkinsTest extends HudsonTestCase
         WebClient wc = new WebClient();
         
         HtmlPage updateSitesPage = wc.goTo(UpdateSitesManager.URL);
-        HtmlElement table = updateSitesPage.getElementById("update-sites");
+        DomElement table = updateSitesPage.getElementById("update-sites");
         DomNodeList<HtmlElement> trs = table.getElementsByTagName("tr");
         assertEquals(
             "Unexpected rows in updatesites list.",
