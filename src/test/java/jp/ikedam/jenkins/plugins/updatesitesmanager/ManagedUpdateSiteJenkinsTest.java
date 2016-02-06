@@ -23,48 +23,45 @@
  */
 package jp.ikedam.jenkins.plugins.updatesitesmanager;
 
+import com.tngtech.java.junit.dataprovider.DataProvider;
+import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import hudson.util.FormValidation;
 import jenkins.model.DownloadSettings;
+import jp.ikedam.jenkins.plugins.updatesitesmanager.testext.WebServerRecipe;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.kohsuke.stapler.HttpResponse;
-import org.mortbay.jetty.HttpConnection;
-import org.mortbay.jetty.Server;
-import org.mortbay.jetty.bio.SocketConnector;
-import org.mortbay.jetty.handler.AbstractHandler;
+import org.kohsuke.stapler.HttpResponses;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 
 import static hudson.util.FormValidation.Kind.ERROR;
 import static hudson.util.FormValidation.Kind.OK;
+import static jp.ikedam.jenkins.plugins.updatesitesmanager.testext.WebServerRecipe.RuleRunnerImpl.getResource;
+import static jp.ikedam.jenkins.plugins.updatesitesmanager.testext.WebServerRecipe.RuleRunnerImpl.urlFor;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assume.assumeThat;
 
 /**
  * Tests for ManagedUpdateSite, concerned with Jenkins.
  */
+@RunWith(DataProviderRunner.class)
 public class ManagedUpdateSiteJenkinsTest {
 
     @Rule
     public JenkinsRule jRule = new JenkinsRule();
 
-    private Server server;
-    private URL baseUrl;
-
     @Test
     public void testDescriptorDoCheckCaCertificate() throws IOException, URISyntaxException {
-        String caCertificate = FileUtils.readFileToString(getResource("caCertificate.crt"));
+        String caCertificate = FileUtils.readFileToString(getResource("caCertificate.crt", getClass()));
 
         assertThat("Always ok if certificate is disabled",
                 getDescriptor().doCheckCaCertificate(false, null).kind, is(OK));
@@ -73,137 +70,81 @@ public class ManagedUpdateSiteJenkinsTest {
     }
 
     @Test
-    public void testDescriptorDoCheckCaCertificateError() {
-        assertThat("Null certificate", getDescriptor().doCheckCaCertificate(true, null).kind, is(ERROR));
+    public void shouldSuccessfullyCheckUpdatesWithoutAnyUC() throws Exception {
+        jRule.getInstance().getUpdateCenter().getSites().clear();
 
-        assertThat("Empty certificate", getDescriptor().doCheckCaCertificate(true, "").kind, is(ERROR));
+        HttpResponse rsp = jRule.getInstance().getPluginManager().doCheckUpdatesServer();
 
-        assertThat("Blank certificate", getDescriptor().doCheckCaCertificate(true, "  ").kind, is(ERROR));
+        // this fails with Jenkins < 1.600, Jenkins < 1.596.1
+        assertThat("Should be redirect", rsp, instanceOf(HttpResponses.forwardToPreviousPage().getClass()));
 
-        assertThat("Invalid certificate",
-                getDescriptor().doCheckCaCertificate(true, "hogehogehogehoge").kind, is(ERROR));
     }
 
     @Test
-    public void testDoCheckUpdateServer() throws Exception {
-        setUpWebServer();
+    @DataProvider(value = {
+            "",
+            " ",
+            "null",
+            "blabla"
+    }, trimValues = false)
+    public void shouldReturnValidationErrOnWrongCert(String cert) {
+        assertThat("Bad certificate", getDescriptor().doCheckCaCertificate(true, cert).kind, is(ERROR));
+    }
 
+
+    @Test
+    @WebServerRecipe
+    public void shouldFailUpdateWithoutCert() throws Exception {
         // Ensure to use server-based download.
-        boolean isUseBrowser = DownloadSettings.get().isUseBrowser();
-        try {
-            DownloadSettings.get().setUseBrowser(false);
-            String caCertificate = FileUtils.readFileToString(getResource("caCertificate.crt"));
+        DownloadSettings.get().setUseBrowser(false);
+        TestManagedUpdateSite site = forMethod(jRule.getTestDescription().getMethodName());
 
-            TestManagedUpdateSite target = new TestManagedUpdateSite(
-                    "test",
-                    new URL(baseUrl, "update-center.json").toExternalForm(),
-                    false,
-                    null,
-                    "test",
-                    false
-            );
-            jRule.getInstance().getUpdateCenter().getSites().clear();
+        jRule.getInstance().getUpdateCenter().getSites().clear();
+        jRule.getInstance().getUpdateCenter().getSites().add(site);
 
-            {
-                target.setCaCertificate(null);
-                HttpResponse rsp = jRule.getInstance().getPluginManager().doCheckUpdatesServer();
-                if (rsp instanceof FormValidation) {
-                    // this fails with Jenkins < 1.600, Jenkins < 1.596.1
-                    assertEquals(
-                            "Accessing update center without any update sites should succeed",
-                            FormValidation.Kind.OK,
-                            ((FormValidation) rsp).kind
-                    );
-                }
-            }
-
-            jRule.getInstance().getUpdateCenter().getSites().add(target);
-
-            {
-                target.setCaCertificate(null);
-                HttpResponse rsp = jRule.getInstance().getPluginManager().doCheckUpdatesServer();
-                if (rsp instanceof FormValidation) {
-                    assertEquals(
-                            "Accessing update center with no certificate must fail",
-                            FormValidation.Kind.ERROR,
-                            ((FormValidation) rsp).kind
-                    );
-                }
-            }
-
-            {
-                target.setCaCertificate(caCertificate);
-                HttpResponse rsp = jRule.getInstance().getPluginManager().doCheckUpdatesServer();
-                if (rsp instanceof FormValidation) {
-                    assertEquals(
-                            "Accessing update center with a proper certificate must succeed",
-                            FormValidation.Kind.OK,
-                            ((FormValidation) rsp).kind
-                    );
-                }
-            }
-
-            {
-                target.setCaCertificate(null);
-                HttpResponse rsp = jRule.getInstance().getPluginManager().doCheckUpdatesServer();
-                if (rsp instanceof FormValidation) {
-                    assertEquals(
-                            "Accessing update center with no certificate must fail",
-                            FormValidation.Kind.ERROR,
-                            ((FormValidation) rsp).kind
-                    );
-                }
-            }
-        } finally {
-            DownloadSettings.get().setUseBrowser(isUseBrowser);
-            if (server != null) {
-                server.stop();
-            }
-        }
+        site.setCaCertificate(null);
+        HttpResponse rsp = jRule.getInstance().getPluginManager().doCheckUpdatesServer();
+        assumeThat("smth went wrong with rsp type", rsp, instanceOf(FormValidation.class));
+        assertThat(
+                "Accessing update center with no certificate must fail",
+                ((FormValidation) rsp).kind, is(FormValidation.Kind.ERROR)
+        );
     }
 
-    public void setUpWebServer() throws Exception {
-        server = new Server();
-        SocketConnector connector = new SocketConnector();
-        server.addConnector(connector);
-        server.setHandler(new AbstractHandler() {
-            @Override
-            public void handle(
-                    String target, HttpServletRequest request,
-                    HttpServletResponse response, int dispatch
-            ) throws IOException, ServletException {
-                String responseBody = null;
-                try {
-                    responseBody = FileUtils.readFileToString(getResource(target), "UTF-8");
-                } catch (URISyntaxException e) {
-                    HttpConnection.getCurrentConnection().getRequest().setHandled(true);
-                    response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                }
-                if (responseBody != null) {
-                    HttpConnection.getCurrentConnection().getRequest().setHandled(true);
-                    response.setContentType("text/plain; charset=utf-8");
-                    response.setStatus(HttpServletResponse.SC_OK);
-                    response.getOutputStream().write(responseBody.getBytes());
-                }
-            }
-        });
-        server.start();
-        baseUrl = new URL("http", "localhost", connector.getLocalPort(), "");
-    }
+    @Test
+    @WebServerRecipe
+    public void shouldSuccessfullyUpdateWithWorkingUC() throws Exception {
+        // Ensure to use server-based download.
+        DownloadSettings.get().setUseBrowser(false);
+        String caCertificate = FileUtils.readFileToString(getResource("caCertificate.crt", getClass()));
 
+        TestManagedUpdateSite site = forMethod(jRule.getTestDescription().getMethodName());
 
-    private File getResource(String name) throws URISyntaxException, FileNotFoundException {
-        String filename = String.format("%s/%s", StringUtils.join(getClass().getName().split("\\."), "/"), name);
-        URL url = ClassLoader.getSystemResource(filename);
-        if (url == null) {
-            throw new FileNotFoundException(String.format("Not found: %s", filename));
-        }
-        return new File(url.toURI());
+        jRule.getInstance().getUpdateCenter().getSites().clear();
+        jRule.getInstance().getUpdateCenter().getSites().add(site);
+
+        site.setCaCertificate(caCertificate);
+        HttpResponse rsp = jRule.getInstance().getPluginManager().doCheckUpdatesServer();
+        assertThat("Should be redirect", rsp, instanceOf(HttpResponses.forwardToPreviousPage().getClass()));
     }
 
     private ManagedUpdateSite.DescriptorImpl getDescriptor() {
         return (ManagedUpdateSite.DescriptorImpl) new ManagedUpdateSite(null, null, false, null, null, false)
                 .getDescriptor();
+    }
+
+    public static TestManagedUpdateSite forMethod(String method) throws MalformedURLException {
+        return new TestManagedUpdateSite(
+                "test",
+                new URL(
+                        new URL(urlFor(method)),
+                        "update-center.json"
+                ).toExternalForm(),
+                false,
+                null,
+                "test",
+                false
+        );
     }
 
     static public class TestManagedUpdateSite extends ManagedUpdateSite {

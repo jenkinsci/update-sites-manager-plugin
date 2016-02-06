@@ -23,8 +23,11 @@
  */
 package jp.ikedam.jenkins.plugins.updatesitesmanager;
 
+import com.tngtech.java.junit.dataprovider.DataProvider;
+import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import hudson.model.UpdateSite;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static hudson.util.FormValidation.Kind.ERROR;
 import static hudson.util.FormValidation.Kind.OK;
@@ -34,6 +37,7 @@ import static org.hamcrest.Matchers.is;
 /**
  * Tests for DescribedUpdateSite, not concerned with Jenkins.
  */
+@RunWith(DataProviderRunner.class)
 public class DescribedUpdateSiteSimpleTest {
     private static class TestDescribedUpdateSite extends DescribedUpdateSite {
         private static final long serialVersionUID = 1934091438438690698L;
@@ -83,18 +87,13 @@ public class DescribedUpdateSiteSimpleTest {
     }
 
     @Test
-    public void testDescriptorDoCheckIdErrorNull() {
-        assertThat("null", getDescriptor().doCheckId(null).kind, is(ERROR));
-    }
-
-    @Test
-    public void testDescriptorDoCheckIdErrorEmpty() {
-        assertThat("empty", getDescriptor().doCheckId("").kind, is(ERROR));
-    }
-
-    @Test
-    public void testDescriptorDoCheckIdErrorBlank() {
-        assertThat("blank", getDescriptor().doCheckId("  ").kind, is(ERROR));
+    @DataProvider(value = {
+            "empty,",
+            "blank, ",
+            "null value,null"
+    }, trimValues = false)
+    public void shouldReturnValidationErrOnWrongId(String comment, String id) {
+        assertThat(comment, getDescriptor().doCheckId(id).kind, is(ERROR));
     }
 
     @Test
@@ -104,10 +103,13 @@ public class DescribedUpdateSiteSimpleTest {
     }
 
     @Test
-    public void testDescriptorDoCheckUrlError() {
-        assertThat("null", getDescriptor().doCheckUrl(null).kind, is(ERROR));
-        assertThat("empty", getDescriptor().doCheckUrl("").kind, is(ERROR));
-        assertThat("blank", getDescriptor().doCheckUrl("  ").kind, is(ERROR));
-        assertThat("non url", getDescriptor().doCheckUrl("hogehoge").kind, is(ERROR));
+    @DataProvider(value = {
+            "empty,",
+            "blank, ",
+            "null value,null",
+            "non url,blabla"
+    }, trimValues = false)
+    public void shouldReturnValidationErrOnCheckWrongUrl(String comment, String url) {
+        assertThat(comment, getDescriptor().doCheckUrl(url).kind, is(ERROR));
     }
 }
