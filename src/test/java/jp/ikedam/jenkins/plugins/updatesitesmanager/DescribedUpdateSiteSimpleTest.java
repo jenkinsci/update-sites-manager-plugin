@@ -23,205 +23,93 @@
  */
 package jp.ikedam.jenkins.plugins.updatesitesmanager;
 
+import com.tngtech.java.junit.dataprovider.DataProvider;
+import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import hudson.model.UpdateSite;
-import hudson.util.FormValidation;
-import junit.framework.TestCase;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import static hudson.util.FormValidation.Kind.ERROR;
+import static hudson.util.FormValidation.Kind.OK;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 
 /**
  * Tests for DescribedUpdateSite, not concerned with Jenkins.
  */
-public class DescribedUpdateSiteSimpleTest extends TestCase
-{
-    private static class TestDescribedUpdateSite extends DescribedUpdateSite
-    {
+@RunWith(DataProviderRunner.class)
+public class DescribedUpdateSiteSimpleTest {
+    private static class TestDescribedUpdateSite extends DescribedUpdateSite {
         private static final long serialVersionUID = 1934091438438690698L;
-        
-        public TestDescribedUpdateSite(String id, String url)
-        {
+
+        public TestDescribedUpdateSite(String id, String url) {
             super(id, url);
         }
-        
-        public static class DescriptorImpl extends DescribedUpdateSite.Descriptor
-        {
+
+        public static class DescriptorImpl extends DescribedUpdateSite.Descriptor {
             @Override
-            public String getDescription()
-            {
+            public String getDescription() {
                 return null;
             }
-            
+
             @Override
-            public String getDisplayName()
-            {
+            public String getDisplayName() {
                 return null;
             }
         }
     }
-    
-    public void testDescribedUpdateSite()
-    {
-        // trimmed
-        {
-            String id = "testId";
-            String url = "http://localhost/update-center.json";
-            UpdateSite site = new TestDescribedUpdateSite(
-                    "  " + id + "  ",
-                    " " + url + "\t"
-            );
-            
-            assertEquals("id is not trimmed", id, site.getId());
-            assertEquals("url is not trimmed", url, site.getUrl());
-        }
-        
-        // null
-        {
-            new TestDescribedUpdateSite(null, null);
-        }
+
+    @Test
+    public void shouldTrimUrlAndId() {
+        String id = "testId";
+        String url = "http://localhost/update-center.json";
+        UpdateSite site = new TestDescribedUpdateSite(
+                "  " + id + "  ",
+                " " + url + "\t"
+        );
+
+        assertThat("id is not trimmed", site.getId(), is(id));
+        assertThat("url is not trimmed", site.getUrl(), is(url));
     }
-    
-    public void testGetUpdateSite()
-    {
-        DescribedUpdateSite site = new TestDescribedUpdateSite("id", "url");
-        assertSame("getUpdateSite must return itself", site, site.getUpdateSite());
+
+    @Test
+    public void shoulHandleNull() {
+        new TestDescribedUpdateSite(null, null);
     }
-    
-    /*
-    public void testGetAvailables()
-    {
-        // no way to initialize UpdateSite...
-    }
-    */
-    
-    /*
-    public void testGetUpdates()
-    {
-        // no way to initialize UpdateSite...
-    }
-    */
-    
-    /*
-    public void testIsDue()
-    {
-        // no way to initialize UpdateSite...
-    }
-    */
-    
-    /*
-    public void testHasUpdates()
-    {
-        // no way to initialize UpdateSite...
-    }
-    */
-    
-    private DescribedUpdateSite.Descriptor getDescriptor()
-    {
+
+    private DescribedUpdateSite.Descriptor getDescriptor() {
         return new TestDescribedUpdateSite.DescriptorImpl();
     }
-    
-    public void testDescriptorDoCheckIdOk()
-    {
-        DescribedUpdateSite.Descriptor descriptor = getDescriptor();
-        
-        {
-            String id = "somevalue";
-            assertEquals(
-                "simple id",
-                FormValidation.Kind.OK,
-                descriptor.doCheckId(id).kind
-            );
-        }
+
+    @Test
+    public void testDescriptorDoCheckIdOk() {
+        assertThat("simple id", getDescriptor().doCheckId("somevalue").kind, is(OK));
     }
-    
-    public void testDescriptorDoCheckIdError()
-    {
-        DescribedUpdateSite.Descriptor descriptor = getDescriptor();
-        
-        // null
-        {
-            String id = null;
-            assertEquals(
-                "null",
-                FormValidation.Kind.ERROR,
-                descriptor.doCheckId(id).kind
-            );
-        }
-        
-        // empty
-        {
-            String id = "";
-            assertEquals(
-                "empty",
-                FormValidation.Kind.ERROR,
-                descriptor.doCheckId(id).kind
-            );
-        }
-        
-        // blank
-        {
-            String id = "  ";
-            assertEquals(
-                "blank",
-                FormValidation.Kind.ERROR,
-                descriptor.doCheckId(id).kind
-            );
-        }
+
+    @Test
+    @DataProvider(value = {
+            "empty,",
+            "blank, ",
+            "null value,null"
+    }, trimValues = false)
+    public void shouldReturnValidationErrOnWrongId(String comment, String id) {
+        assertThat(comment, getDescriptor().doCheckId(id).kind, is(ERROR));
     }
-    
-    public void testDescriptorDoCheckUrlOk()
-    {
-        DescribedUpdateSite.Descriptor descriptor = getDescriptor();
-        
-        {
-            String url = "http://localhost/update-center.json";
-            assertEquals(
-                "simple url",
-                FormValidation.Kind.OK,
-                descriptor.doCheckUrl(url).kind
-            );
-        }
+
+    @Test
+    public void testDescriptorDoCheckUrlOk() {
+        String url = "http://localhost/update-center.json";
+        assertThat("simple url", getDescriptor().doCheckUrl(url).kind, is(OK));
     }
-    
-    public void testDescriptorDoCheckUrlError()
-    {
-        DescribedUpdateSite.Descriptor descriptor = getDescriptor();
-        
-        // null
-        {
-            String url = null;
-            assertEquals(
-                "null",
-                FormValidation.Kind.ERROR,
-                descriptor.doCheckUrl(url).kind
-            );
-        }
-        
-        // empty
-        {
-            String url = "";
-            assertEquals(
-                "empty",
-                FormValidation.Kind.ERROR,
-                descriptor.doCheckUrl(url).kind
-            );
-        }
-        
-        // blank
-        {
-            String url = "  ";
-            assertEquals(
-                "blank",
-                FormValidation.Kind.ERROR,
-                descriptor.doCheckUrl(url).kind
-            );
-        }
-        
-        // non url
-        {
-            String url = "hogehoge";
-            assertEquals(
-                "non url",
-                FormValidation.Kind.ERROR,
-                descriptor.doCheckUrl(url).kind
-            );
-        }
+
+    @Test
+    @DataProvider(value = {
+            "empty,",
+            "blank, ",
+            "null value,null",
+            "non url,blabla"
+    }, trimValues = false)
+    public void shouldReturnValidationErrOnCheckWrongUrl(String comment, String url) {
+        assertThat(comment, getDescriptor().doCheckUrl(url).kind, is(ERROR));
     }
 }

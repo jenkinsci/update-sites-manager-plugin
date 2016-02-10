@@ -26,8 +26,7 @@ THE SOFTWARE.
   <l:header />
   <l:side-panel>
     <l:tasks>
-      <l:task icon="images/24x24/up.png" href=".." title="${%Back to Manage Jenkins}" contextMenu="false" />
-      <l:task icon="images/24x24/new-package.png" href="_add" title="${%Add New Site}" />
+      <l:task icon="images/24x24/up.png" href="../manage" title="${%Back to Manage Jenkins}" contextMenu="false" />
     </l:tasks>
   </l:side-panel>
 </j:jelly>
