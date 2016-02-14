@@ -32,7 +32,6 @@ import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.QueryParameter;
 
-import java.io.Serializable;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -41,8 +40,7 @@ import java.util.List;
 /**
  * Base for UpdateSite that have Descriptor.
  */
-@SuppressWarnings("serial")
-abstract public class DescribedUpdateSite extends UpdateSite implements Describable<DescribedUpdateSite>, ExtensionPoint, Serializable
+abstract public class DescribedUpdateSite extends UpdateSite implements Describable<DescribedUpdateSite>, ExtensionPoint
 {
     /**
      * Constructor
