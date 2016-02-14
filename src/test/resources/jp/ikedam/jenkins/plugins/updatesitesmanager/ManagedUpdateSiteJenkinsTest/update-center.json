@@ -1,1 +1,195 @@
-{"id":"ikedam-update-center","plugins":{"ldap-sasl":{"buildDate":"Feb 11, 2013","dependencies":[],"developers":[{"developerId":"ikedam","name":"IKEDA Yasuyuki"}],"excerpt":"Authenticate users using a LDAP server with SASL mechanism.","gav":"jp.ikedam.jenkins.plugins:ldap-sasl:0.9.2","name":"ldap-sasl","releaseTimestamp":"2013-02-10T18:16:26.00Z","requiredCore":"1.466","scm":"github.com","sha1":"4GcEoUL8Wx19spHzqcRHTPbZ7BU=","title":"LDAP SASL plugin","url":"http://ikedam.github.com/jenkins-update-center/releases/jp/ikedam/jenkins/plugins/ldap-sasl/0.9.2/ldap-sasl-0.9.2.hpi","version":"0.9.2"}},"signature":{"certificates":["MIIC1TCCAj6gAwIBAgIJAJoNcT+1HtMXMA0GCSqGSIb3DQEBBQUAMFExCzAJBgNVBAYTAkpQMREwDwYDVQQIEwhLYW5hZ2F3YTEvMC0GA1UEChMmSWtlZGFtIEplbmtpbnMgcGx1Z2luIGRldmVsb3BtZW50IHRlYW0wHhcNMTMwMjEzMTI0NTQ5WhcNMTYwMjEzMTI0NTQ5WjBRMQswCQYDVQQGEwJKUDERMA8GA1UECBMIS2FuYWdhd2ExLzAtBgNVBAoTJklrZWRhbSBKZW5raW5zIHBsdWdpbiBkZXZlbG9wbWVudCB0ZWFtMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCrV5dXUbGL6GFws6QzwpwJw/Q9VVCWNsEmBBE5zajN0WCbMP8tMQSjqqY1TUPxQu769WlP22v+1VSQubSaQ9z2hPif7uXnkWTUER5+34fqjECiOwKhVGUTMt/vKZT+GHizbwf7TTRVR++n02glI2eGRRYj17xyExaLSx0JO7wEWQIDAQABo4G0MIGxMB0GA1UdDgQWBBTYlqZDfBzyc8T3iuQQKc8HYhp6xjCBgQYDVR0jBHoweIAU2JamQ3wc8nPE94rkECnPB2IaesahVaRTMFExCzAJBgNVBAYTAkpQMREwDwYDVQQIEwhLYW5hZ2F3YTEvMC0GA1UEChMmSWtlZGFtIEplbmtpbnMgcGx1Z2luIGRldmVsb3BtZW50IHRlYW2CCQCaDXE/tR7TFzAMBgNVHRMEBTADAQH/MA0GCSqGSIb3DQEBBQUAA4GBAGRQUlFAOCz27L60h4MHwdEWFO3dn5gNUP7VBrdxr6bR7nEhxTWoxokSDRLQ+TYhZHz/WmFql0idu5DDzLbMY+WQfK9H7gjxHmZMsXoquj2MpJQTsN0kXlruSssyeLI/qrAsjTpVA1Uit66Yo8JN47n48XcCcBBvfqH7R7uKbb5Z"],"correct_digest":"df+vowaMFVWdnIDMx68mDRJ9Z88=","correct_signature":"AqXY+QjLRK62/v7L0dUPEtKsc52Ima0ZNQHr6jYYc37C0cOPseuQhwGoY502QPNOw28HvC891mLHXuoxTRJ9QD9UqaLwMci4syDfDM3NR9wnLfMcj7gI/wEr4LDniNsMcIFez4IhJe4KjaYDsJVYEcomYDCEBFwG0yYf0SVVGtI=","digest":"2jmj7l5rSw0yVb/vlWAYkK/YBwk=","signature":"NBp1+YU3IUntvwvlAuxmX1EZfns/7QQf0EvMFnD9ftf+vd7rv9eQiktcpnwnptfF6/9HzmIzSvADOXRAxtNHCDzDyaVU9X+C2Oo2mP9WsvBJO1Z+OUraGaZ7G0cLnMwt3vTIqTN9wOfg/EhbAZMmJfHVAogSMbZoApj9b5rJ7L8="},"updateCenterVersion":"1"}
+{
+  "id": "ikedam-update-center",
+  "plugins":   {
+    "disable-popup":     {
+      "buildDate": "Sep 21, 2013",
+      "dependencies": [],
+      "developers": [      {
+        "developerId": "ikedam",
+        "name": "IKEDA Yasuyuki"
+      }],
+      "excerpt": "Disable mouseover popups.",
+      "gav": "jp.ikedam.jenkins.plugins:disable-popup:1.0.0",
+      "name": "disable-popup",
+      "releaseTimestamp": "2013-09-20T17:46:02.00Z",
+      "requiredCore": "1.466",
+      "scm": "github.com",
+      "sha1": "uvNZmrXR+1uWl8zi0Iq1KHqwoeQ=",
+      "title": "Disable Popup plugin",
+      "url": "https://ikedam.github.io/jenkins-update-center/releases/jp/ikedam/jenkins/plugins/disable-popup/1.0.0/disable-popup-1.0.0.hpi",
+      "version": "1.0.0",
+      "wiki": "https://github.com/ikedam/disable-popup"
+    },
+    "git-shallow-depth":     {
+      "buildDate": "Jan 31, 2016",
+      "dependencies":       [
+                {
+          "name": "git",
+          "optional": false,
+          "version": "2.4.0"
+        },
+                {
+          "name": "git-client",
+          "optional": false,
+          "version": "1.19.0"
+        }
+      ],
+      "developers": [      {
+        "developerId": "ikedam",
+        "name": "IKEDA Yasuyuki"
+      }],
+      "excerpt": "Specifies the depth for shallow clone. Workaround untill JENKINS-24728 is fixed.",
+      "gav": "jp.ikedam.jenkins.plugins:git-shallow-depth:1.0.0",
+      "name": "git-shallow-depth",
+      "releaseTimestamp": "2016-01-31T04:03:32.00Z",
+      "requiredCore": "1.580",
+      "scm": "github.com",
+      "sha1": "+rGjkDRPQy5794onkEf1P3lMp2s=",
+      "title": "Git shallow depth plugin",
+      "url": "https://ikedam.github.io/jenkins-update-center/releases/jp/ikedam/jenkins/plugins/git-shallow-depth/1.0.0/git-shallow-depth-1.0.0.hpi",
+      "version": "1.0.0",
+      "wiki": "https://github.com/ikedam/git-shallow-depth-plugin"
+    },
+    "ldap-sasl":     {
+      "buildDate": "Feb 11, 2016",
+      "dependencies": [],
+      "developers": [      {
+        "developerId": "ikedam",
+        "name": "IKEDA Yasuyuki"
+      }],
+      "excerpt": "Authenticate users using a LDAP server with SASL mechanism.",
+      "gav": "jp.ikedam.jenkins.plugins:ldap-sasl:2.0.2",
+      "name": "ldap-sasl",
+      "previousTimestamp": "2016-02-08T22:10:54.00Z",
+      "previousVersion": "2.0.1",
+      "releaseTimestamp": "2016-02-11T01:00:36.00Z",
+      "requiredCore": "1.466",
+      "scm": "github.com",
+      "sha1": "fWOuJSO9pOjkw6xRVdHM+hGzOI0=",
+      "title": "LDAP SASL plugin",
+      "url": "https://ikedam.github.io/jenkins-update-center/releases/jp/ikedam/jenkins/plugins/ldap-sasl/2.0.2/ldap-sasl-2.0.2.hpi",
+      "version": "2.0.2",
+      "wiki": "https://github.com/ikedam/ldap-sasl"
+    },
+    "page-decorator":     {
+      "buildDate": "Feb 07, 2016",
+      "dependencies": [],
+      "developers": [      {
+        "developerId": "ikedam",
+        "name": "IKEDA Yasuyuki"
+      }],
+      "excerpt": "Provides configure header and footer appended for all pages.",
+      "gav": "jp.ikedam.jenkins.plugins:page-decorator:1.0.0",
+      "name": "page-decorator",
+      "releaseTimestamp": "2016-02-07T03:32:36.00Z",
+      "requiredCore": "1.466",
+      "scm": "github.com",
+      "sha1": "X716GZ3/pA2PbMxzRHndVU/mgns=",
+      "title": "PageDecorator plugin",
+      "url": "https://ikedam.github.io/jenkins-update-center/releases/jp/ikedam/jenkins/plugins/page-decorator/1.0.0/page-decorator-1.0.0.hpi",
+      "version": "1.0.0",
+      "wiki": "https://github.com/ikedam/page-decorator-plugin"
+    },
+    "quickfix-maven-prepostbuilder-projectaction":     {
+      "buildDate": "Dec 01, 2013",
+      "dependencies":       [
+                {
+          "name": "maven-plugin",
+          "optional": false,
+          "version": "1.466"
+        },
+                {
+          "name": "javadoc",
+          "optional": false,
+          "version": "1.0"
+        }
+      ],
+      "developers": [      {
+        "developerId": "ikedam",
+        "name": "IKEDA Yasuyuki"
+      }],
+      "excerpt": "Quickfix to call getProjectAction for prebuilders and postbuilders of MavenModuleSet.",
+      "gav": "jp.ikedam.jenkins.plugins:quickfix-maven-prepostbuilder-projectaction:0.0.1",
+      "name": "quickfix-maven-prepostbuilder-projectaction",
+      "releaseTimestamp": "2013-12-01T13:36:42.00Z",
+      "requiredCore": "1.466",
+      "scm": "github.com",
+      "sha1": "6JuAFTpxgFxjpdCj0Wx2yLCWFCA=",
+      "title": "Quickfix Maven PrepostBuilder Projectaction plugin",
+      "url": "https://ikedam.github.io/jenkins-update-center/releases/jp/ikedam/jenkins/plugins/quickfix-maven-prepostbuilder-projectaction/0.0.1/quickfix-maven-prepostbuilder-projectaction-0.0.1.hpi",
+      "version": "0.0.1",
+      "wiki": "https://github.com/ikedam/quickfix-maven-prepostbuilder-projectaction"
+    },
+    "quickfix15156":     {
+      "buildDate": "Mar 04, 2013",
+      "dependencies": [],
+      "developers": [      {
+        "developerId": "ikedam",
+        "name": "IKEDA Yasuyuki"
+      }],
+      "excerpt": "Quickfix for Jenkins-15156, Builds disappear from build history after completion.",
+      "gav": "jp.ikedam.jenkins.plugins:quickfix15156:0.2.1",
+      "name": "quickfix15156",
+      "previousTimestamp": "2013-03-04T12:45:34.00Z",
+      "previousVersion": "0.2.0",
+      "releaseTimestamp": "2013-03-04T13:55:28.00Z",
+      "requiredCore": "1.485",
+      "scm": "github.com",
+      "sha1": "7jURbYqXEaHlvWKclL1X5naVinA=",
+      "title": "Quickfix Jenkins-15156 plugin",
+      "url": "https://ikedam.github.io/jenkins-update-center/releases/jp/ikedam/jenkins/plugins/quickfix15156/0.2.1/quickfix15156-0.2.1.hpi",
+      "version": "0.2.1",
+      "wiki": "https://github.com/ikedam/quickfix15156-builder"
+    },
+    "redirect404":     {
+      "buildDate": "Feb 13, 2016",
+      "dependencies": [],
+      "developers": [      {
+        "developerId": "ikedam",
+        "name": "IKEDA Yasuyuki"
+      }],
+      "excerpt": "Redirects unauthenticated users to the login page when they accessed unauthorized pages.",
+      "gav": "jp.ikedam.jenkins.plugins:redirect404:1.0.1",
+      "name": "redirect404",
+      "previousTimestamp": "2016-02-11T05:05:30.00Z",
+      "previousVersion": "1.0.0",
+      "releaseTimestamp": "2016-02-13T04:57:04.00Z",
+      "requiredCore": "1.466",
+      "scm": "github.com",
+      "sha1": "bhN61QPUpmlHJP0Gz2cywV2gD2w=",
+      "title": "Redirect 404 Plugin",
+      "url": "https://ikedam.github.io/jenkins-update-center/releases/jp/ikedam/jenkins/plugins/redirect404/1.0.1/redirect404-1.0.1.hpi",
+      "version": "1.0.1",
+      "wiki": "https://github.com/ikedam/redirect404-plugin"
+    },
+    "viewcopy-builder":     {
+      "buildDate": "Sep 01, 2013",
+      "dependencies": [],
+      "developers": [      {
+        "developerId": "ikedam",
+        "name": "IKEDA Yasuyuki"
+      }],
+      "excerpt": "Jenkins plugin to copy a view in a build step.",
+      "gav": "jp.ikedam.jenkins.plugins:viewcopy-builder:0.9.0",
+      "name": "viewcopy-builder",
+      "previousTimestamp": "2013-02-21T13:53:40.00Z",
+      "previousVersion": "0.1.1",
+      "releaseTimestamp": "2013-09-01T08:48:10.00Z",
+      "requiredCore": "1.480",
+      "scm": "github.com",
+      "sha1": "3mh/o8VFYVBQiaEJy1G8f6jySW4=",
+      "title": "Viewcopy Builder plugin",
+      "url": "https://ikedam.github.io/jenkins-update-center/releases/jp/ikedam/jenkins/plugins/viewcopy-builder/0.9.0/viewcopy-builder-0.9.0.hpi",
+      "version": "0.9.0",
+      "wiki": "https://github.com/ikedam/viewcopy-builder"
+    }
+  },
+  "signature":   {
+    "certificates": ["MIICcDCCAdmgAwIBAgIJAIVl3Zn6rdHRMA0GCSqGSIb3DQEBCwUAMFExCzAJBgNVBAYTAkpQMREwDwYDVQQIDAhLYW5hZ2F3YTEvMC0GA1UECgwmSWtlZGFtIEplbmtpbnMgcGx1Z2luIGRldmVsb3BtZW50IHRlYW0wHhcNMTYwMTMxMDQwMzU5WhcNMTkwMTMwMDQwMzU5WjBRMQswCQYDVQQGEwJKUDERMA8GA1UECAwIS2FuYWdhd2ExLzAtBgNVBAoMJklrZWRhbSBKZW5raW5zIHBsdWdpbiBkZXZlbG9wbWVudCB0ZWFtMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCrV5dXUbGL6GFws6QzwpwJw/Q9VVCWNsEmBBE5zajN0WCbMP8tMQSjqqY1TUPxQu769WlP22v+1VSQubSaQ9z2hPif7uXnkWTUER5+34fqjECiOwKhVGUTMt/vKZT+GHizbwf7TTRVR++n02glI2eGRRYj17xyExaLSx0JO7wEWQIDAQABo1AwTjAdBgNVHQ4EFgQU2JamQ3wc8nPE94rkECnPB2IaesYwHwYDVR0jBBgwFoAU2JamQ3wc8nPE94rkECnPB2IaesYwDAYDVR0TBAUwAwEB/zANBgkqhkiG9w0BAQsFAAOBgQCOzPxSOJcbuivjh5Y5yYSXYzYE7oJwCay3+9gpejvyt3MvTsjMD6ErQR9HG2DumF72XCdE6K9dPA/MZANALmaPBhMMC3LZvE52qIk+HdT880nFP/F/0fttZ3jWDEoM15ZqXp3vCPQWg4n1/Wl7ewGVuBzZYTayUx3FMBgOaoYU0A=="],
+    "correct_digest": "1KdjFoMHrhViTeuRarYrLSfEyBc=",
+    "correct_signature": "QWFuuuwBbTWjz0BXnQPrs+k8fN61rDfxXm8ZDJE2PCGptmef8RNH91skfm8HL0cMNlSYmAfCYPYgVG1t9U2QMgKeCjj7K2mflJHzQ69eIkhcDz0ZRnfM7UQPS+HrQI4+ZTPLoCbUVDHMsRyPywDW3Ue18MPiT36xWiaEkMpAjxU=",
+    "digest": "2jmj7l5rSw0yVb/vlWAYkK/YBwk=",
+    "signature": "NBp1+YU3IUntvwvlAuxmX1EZfns/7QQf0EvMFnD9ftf+vd7rv9eQiktcpnwnptfF6/9HzmIzSvADOXRAxtNHCDzDyaVU9X+C2Oo2mP9WsvBJO1Z+OUraGaZ7G0cLnMwt3vTIqTN9wOfg/EhbAZMmJfHVAogSMbZoApj9b5rJ7L8="
+  },
+  "updateCenterVersion": "1"
+}
