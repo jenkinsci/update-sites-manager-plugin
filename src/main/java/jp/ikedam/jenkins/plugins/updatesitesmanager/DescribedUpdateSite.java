@@ -190,18 +190,6 @@ abstract public class DescribedUpdateSite extends UpdateSite implements Describa
         abstract public String getDescription();
         
         /**
-         * Returns whether this DescribedUpdateSite can be used to create a new UpdateSite.
-         * 
-         * Return false for classes that is used for managing existing entry, but not for add new entry.
-         * 
-         * @return whether this DescribedUpdateSite can be used to create a new UpdateSite.
-         */
-        public boolean canCreateNewSite()
-        {
-            return true;
-        }
-        
-        /**
          * Validate id
          * 
          * @param id

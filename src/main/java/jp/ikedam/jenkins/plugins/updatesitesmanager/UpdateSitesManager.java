@@ -133,15 +133,10 @@ public class UpdateSitesManager extends ManagementLink {
     /**
      * Returns all the registered DescribedUpdateSite.
      *
-     * Only returns DescribedUpdateSite that can be used to create a new site.
-     *
      * @return a list of Desctiptor of DescribedUpdateSite.
      */
     public List<DescribedUpdateSite.Descriptor> getUpdateSiteDescriptorList() {
-        return newArrayList(Iterables.filter(
-                DescribedUpdateSite.all(),
-                new CanCreateNewSiteFilter()
-        ));
+        return DescribedUpdateSite.all();
     }
 
     /**
@@ -212,16 +207,6 @@ public class UpdateSitesManager extends ManagementLink {
         public boolean apply(UpdateSite input) {
             return StringUtils.isBlank(input.getId());
 
-        }
-    }
-
-    /**
-     * Should show only descriptors with ability to create new sites
-     */
-    public static class CanCreateNewSiteFilter implements Predicate<DescribedUpdateSite.Descriptor> {
-        @Override
-        public boolean apply(DescribedUpdateSite.Descriptor descriptor) {
-            return descriptor.canCreateNewSite();
         }
     }
 }
