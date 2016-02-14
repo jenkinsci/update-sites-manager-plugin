@@ -30,6 +30,7 @@ import hudson.Extension;
 import hudson.model.Descriptor.FormException;
 import hudson.model.ManagementLink;
 import hudson.model.UpdateSite;
+import hudson.util.FormApply;
 import jenkins.model.Jenkins;
 import jp.ikedam.jenkins.plugins.updatesitesmanager.internal.IgnoreNotPOST;
 import jp.ikedam.jenkins.plugins.updatesitesmanager.internal.OnlyAdminister;
@@ -37,6 +38,8 @@ import jp.ikedam.jenkins.plugins.updatesitesmanager.internal.Sites;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.HttpResponse;
 import org.kohsuke.stapler.HttpResponses;
+import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.StaplerResponse;
 
 import javax.annotation.Nullable;
 import javax.servlet.ServletException;
@@ -152,7 +155,7 @@ public class UpdateSitesManager extends ManagementLink {
     @OnlyAdminister
     @IgnoreNotPOST
     @SuppressWarnings("unused")
-    public HttpResponse doUpdate(@Sites List<UpdateSite> managed) throws ServletException, IOException, FormException {
+    public void doUpdate(StaplerRequest req, StaplerResponse rsp, @Sites List<UpdateSite> managed) throws ServletException, IOException, FormException {
         List<UpdateSite> newSitesList = newArrayList(Iterables.concat(getNotManagedUpdateSiteList(), managed));
 
         shouldNotContainDuplicatedIds(newSitesList);
@@ -161,7 +164,7 @@ public class UpdateSitesManager extends ManagementLink {
         Jenkins.getInstance().getUpdateCenter().getSites().replaceBy(newSitesList);
         Jenkins.getInstance().getUpdateCenter().save();
 
-        return HttpResponses.redirectViaContextPath("/manage");
+        FormApply.success(req.getContextPath() + "/manage").generateResponse(req, rsp, null);
     }
 
     /**
