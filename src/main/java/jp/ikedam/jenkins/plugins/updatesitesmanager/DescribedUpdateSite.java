@@ -181,15 +181,6 @@ abstract public class DescribedUpdateSite extends UpdateSite implements Describa
     static public abstract class Descriptor extends hudson.model.Descriptor<DescribedUpdateSite>
     {
         /**
-         * Return the description of this DescribedUpdateSite.
-         * 
-         * Shown when selecting DescribedUpdateSite to create.
-         * 
-         * @return the description of this DescribedUpdateSite
-         */
-        abstract public String getDescription();
-        
-        /**
          * Validate id
          * 
          * @param id

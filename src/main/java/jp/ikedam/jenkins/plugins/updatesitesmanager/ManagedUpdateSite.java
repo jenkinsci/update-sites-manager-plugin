@@ -186,20 +186,6 @@ public class ManagedUpdateSite extends DescribedUpdateSite
         }
         
         /**
-         * Returns the description of this UpdateSite.
-         * 
-         * shown when select UpdateSite to create.
-         * 
-         * @return
-         * @see jp.ikedam.jenkins.plugins.updatesitesmanager.DescribedUpdateSite.Descriptor#getDescription()
-         */
-        @Override
-        public String getDescription()
-        {
-            return Messages.ManagedUpdateSite_Description();
-        }
-        
-        /**
          * Returns whether the certificate is valid.
          * 
          * @return FormValidation object

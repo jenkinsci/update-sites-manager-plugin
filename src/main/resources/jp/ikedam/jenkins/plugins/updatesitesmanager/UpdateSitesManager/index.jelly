@@ -34,7 +34,7 @@ THE SOFTWARE.
             </h1>
 
             <h2>
-                Not managed update sites
+                ${%Not managed update sites}
             </h2>
             <div class="warning">${%These sites cannot be configured with UpdateSitesManager. Please visit the configuration pages dedicated for sites.}</div>
 
@@ -48,7 +48,7 @@ THE SOFTWARE.
             </ul>
 
             <h2>
-                Custom update sites
+                ${%Custom update sites}
             </h2>
 
             <f:form name="sitesForm" method="post" action="update">
@@ -57,7 +57,7 @@ THE SOFTWARE.
                                    descriptors="${it.updateSiteDescriptorList}"/>
                 </f:block>
                 <f:block>
-                    <f:submit value="Save"/>
+                    <f:submit value="${%Save}"/>
                     <f:apply />
                 </f:block>
             </f:form>
