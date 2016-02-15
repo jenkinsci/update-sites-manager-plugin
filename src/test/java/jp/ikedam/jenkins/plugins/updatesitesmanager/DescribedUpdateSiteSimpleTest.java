@@ -48,11 +48,6 @@ public class DescribedUpdateSiteSimpleTest {
 
         public static class DescriptorImpl extends DescribedUpdateSite.Descriptor {
             @Override
-            public String getDescription() {
-                return null;
-            }
-
-            @Override
             public String getDisplayName() {
                 return null;
             }
