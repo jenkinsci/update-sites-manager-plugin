@@ -53,9 +53,6 @@ public class DescribedUpdateSiteJenkinsTest {
     public ExpectedException ex = ExpectedException.none();
 
     public static class DescribedUpdateSiteForConfigureTest extends DescribedUpdateSite {
-        private static final long serialVersionUID = -5159897288105253315L;
-
-
         private String testValue;
 
         public String getTestValue() {

@@ -55,8 +55,6 @@ import javax.annotation.Nonnull;
  */
 public class ManagedUpdateSite extends DescribedUpdateSite
 {
-    private static final long serialVersionUID = -714713790690982048L;
-    
     private static Logger LOGGER = Logger.getLogger(ManagedUpdateSite.class.getName());
     
     private String caCertificate;

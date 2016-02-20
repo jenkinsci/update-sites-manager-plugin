@@ -40,8 +40,6 @@ import static org.hamcrest.Matchers.is;
 @RunWith(DataProviderRunner.class)
 public class DescribedUpdateSiteSimpleTest {
     private static class TestDescribedUpdateSite extends DescribedUpdateSite {
-        private static final long serialVersionUID = 1934091438438690698L;
-
         public TestDescribedUpdateSite(String id, String url) {
             super(id, url);
         }

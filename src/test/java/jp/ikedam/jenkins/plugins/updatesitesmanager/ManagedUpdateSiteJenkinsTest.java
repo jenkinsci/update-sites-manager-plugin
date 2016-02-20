@@ -148,8 +148,6 @@ public class ManagedUpdateSiteJenkinsTest {
     }
 
     static public class TestManagedUpdateSite extends ManagedUpdateSite {
-        private static final long serialVersionUID = -6888318503867286760L;
-
         public TestManagedUpdateSite(
                 String id,
                 String url,
