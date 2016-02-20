@@ -66,7 +66,7 @@ public class DescribedUpdateSiteJenkinsTest {
         }
 
         @TestExtension("shouldShowAllDescribedSitesAsManaged")
-        static public class DescriptorImpl extends Descriptor {
+        static public class DescriptorImpl extends DescribedUpdateSiteDescriptopr {
             @Override
             public String getDisplayName() {
                 return "DescribedUpdateSiteForConfigureTest";

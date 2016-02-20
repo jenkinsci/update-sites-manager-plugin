@@ -116,7 +116,7 @@ public class UpdateSitesManagerJenkinsTest {
     public void testGetUpdateSiteDescriptorList() {
         UpdateSitesManager target = new UpdateSitesManager();
 
-        List<DescribedUpdateSite.Descriptor> availableDescriptorList = target.getUpdateSiteDescriptorList();
+        List<DescribedUpdateSiteDescriptopr> availableDescriptorList = target.getUpdateSiteDescriptorList();
 
         // availableDescriptorList must contain ManagedUpdateSite.
         assertTrue(

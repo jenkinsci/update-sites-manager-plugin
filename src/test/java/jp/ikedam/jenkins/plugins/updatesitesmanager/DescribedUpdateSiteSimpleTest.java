@@ -44,7 +44,7 @@ public class DescribedUpdateSiteSimpleTest {
             super(id, url);
         }
 
-        public static class DescriptorImpl extends DescribedUpdateSite.Descriptor {
+        public static class DescriptorImpl extends DescribedUpdateSiteDescriptopr {
             @Override
             public String getDisplayName() {
                 return null;
@@ -70,7 +70,7 @@ public class DescribedUpdateSiteSimpleTest {
         new TestDescribedUpdateSite(null, null);
     }
 
-    private DescribedUpdateSite.Descriptor getDescriptor() {
+    private DescribedUpdateSiteDescriptopr getDescriptor() {
         return new TestDescribedUpdateSite.DescriptorImpl();
     }
 

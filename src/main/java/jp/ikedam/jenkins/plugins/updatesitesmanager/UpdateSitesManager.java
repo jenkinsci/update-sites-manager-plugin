@@ -138,7 +138,7 @@ public class UpdateSitesManager extends ManagementLink {
      *
      * @return a list of Desctiptor of DescribedUpdateSite.
      */
-    public List<DescribedUpdateSite.Descriptor> getUpdateSiteDescriptorList() {
+    public List<DescribedUpdateSiteDescriptopr> getUpdateSiteDescriptorList() {
         return DescribedUpdateSite.all();
     }
 

@@ -27,13 +27,9 @@ import hudson.DescriptorExtensionList;
 import hudson.ExtensionPoint;
 import hudson.model.Describable;
 import hudson.model.UpdateSite;
-import hudson.util.FormValidation;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
-import org.kohsuke.stapler.QueryParameter;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -155,7 +151,7 @@ abstract public class DescribedUpdateSite extends UpdateSite implements Describa
      * 
      * @return the list of Descriptor of DescribedUpdateSite subclasses.
      */
-    static public DescriptorExtensionList<DescribedUpdateSite, DescribedUpdateSite.Descriptor> all()
+    static public DescriptorExtensionList<DescribedUpdateSite, DescribedUpdateSiteDescriptopr> all()
     {
         return Jenkins.getActiveInstance().getDescriptorList(DescribedUpdateSite.class);
     }
@@ -168,62 +164,8 @@ abstract public class DescribedUpdateSite extends UpdateSite implements Describa
      * @see hudson.model.Describable#getDescriptor()
      */
     @Override
-    public Descriptor getDescriptor()
+    public DescribedUpdateSiteDescriptopr getDescriptor()
     {
-        return (Descriptor) Jenkins.getActiveInstance().getDescriptorOrDie(getClass());
-    }
-    
-    /**
-     * Base class for Descriptor of subclass of DescribedUpdateSite
-     */
-    static public abstract class Descriptor extends hudson.model.Descriptor<DescribedUpdateSite>
-    {
-        /**
-         * Validate id
-         * 
-         * @param id
-         * @return
-         */
-        public FormValidation doCheckId(@QueryParameter String id)
-        {
-            if(StringUtils.isBlank(id))
-            {
-                return FormValidation.error(Messages.DescribedupdateSite_id_required());
-            }
-            return FormValidation.ok();
-        }
-        
-        /**
-         * Validate url
-         * 
-         * @param url
-         * @return
-         */
-        public FormValidation doCheckUrl(@QueryParameter String url)
-        {
-            if(StringUtils.isBlank(url))
-            {
-                return FormValidation.error(Messages.DescribedupdateSite_url_required());
-            }
-            
-            URI uri;
-            try
-            {
-                uri = new URI(url);
-            }
-            catch(URISyntaxException e)
-            {
-                return FormValidation.error(Messages.DescribedupdateSite_url_invalid(e.getLocalizedMessage()));
-            }
-            
-            if(
-                StringUtils.isBlank(uri.getScheme())
-                || StringUtils.isBlank(uri.getHost())
-            )
-            {
-                return FormValidation.error(Messages.DescribedupdateSite_url_invalid("incomplete URI"));
-            }
-            return FormValidation.ok();
-        }
+        return (DescribedUpdateSiteDescriptopr) Jenkins.getActiveInstance().getDescriptorOrDie(getClass());
     }
 }
