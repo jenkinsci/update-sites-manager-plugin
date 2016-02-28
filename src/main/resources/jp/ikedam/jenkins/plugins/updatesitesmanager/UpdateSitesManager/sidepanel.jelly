@@ -26,7 +26,8 @@ THE SOFTWARE.
   <l:header />
   <l:side-panel>
     <l:tasks>
-      <l:task icon="images/24x24/up.png" href="../manage" title="${%Back to Manage Jenkins}" contextMenu="false" />
+      <l:task href="${rootURL}/" icon="icon-up icon-md" title="${%Back to Dashboard}" />
+      <l:task href="${rootURL}/manage" icon="icon-setting icon-md" permission="${app.ADMINISTER}" title="${%Manage Jenkins}"/>
     </l:tasks>
   </l:side-panel>
 </j:jelly>
