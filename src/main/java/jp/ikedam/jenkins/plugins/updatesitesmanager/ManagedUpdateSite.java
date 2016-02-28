@@ -167,7 +167,7 @@ public class ManagedUpdateSite extends DescribedUpdateSite
      * Descriptor for this class.
      */
     @Extension
-    static public class DescriptorImpl extends DescribedUpdateSite.Descriptor
+    static public class DescriptorImpl extends DescribedUpdateSiteDescriptopr
     {
         /**
          * Returns the name of this UpdateSite.
