@@ -23,6 +23,9 @@
  */
 package jp.ikedam.jenkins.plugins.updatesitesmanager;
 
+import hudson.Extension;
+import hudson.util.FormValidation;
+
 import java.io.ByteArrayInputStream;
 import java.io.UnsupportedEncodingException;
 import java.security.cert.CertificateException;
@@ -30,16 +33,14 @@ import java.security.cert.CertificateFactory;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import hudson.Extension;
-import hudson.util.FormValidation;
+import javax.annotation.Nonnull;
 
 import jenkins.util.JSONSignatureValidator;
-import jp.ikedam.jenkins.plugins.updatesitesmanager.internal.ExtendedCertJsonSignValidator;
+import jp.ikedam.jenkins.plugins.updatesitesmanager.internal.NoCertJsonSignValidator;
+
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
-
-import javax.annotation.Nonnull;
 
 /**
  * Extended UpdateSite to be managed in UpdateSitesManager.
@@ -156,11 +157,12 @@ public class ManagedUpdateSite extends DescribedUpdateSite
     @Override
     protected JSONSignatureValidator getJsonSignatureValidator()
     {
-        if (isUseCaCertificate()) {
+        return new NoCertJsonSignValidator(getId(), getCaCertificate());
+        /*if (isUseCaCertificate()) {
             return new ExtendedCertJsonSignValidator(getId(), getCaCertificate());
         } else {
             return super.getJsonSignatureValidator();
-        }
+        }*/
     }
     
     /**
