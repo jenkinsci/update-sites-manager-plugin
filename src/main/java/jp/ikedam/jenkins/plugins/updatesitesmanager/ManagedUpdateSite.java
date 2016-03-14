@@ -36,6 +36,7 @@ import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 
 import jenkins.util.JSONSignatureValidator;
+import jp.ikedam.jenkins.plugins.updatesitesmanager.internal.ExtendedCertJsonSignValidator;
 import jp.ikedam.jenkins.plugins.updatesitesmanager.internal.NoCertJsonSignValidator;
 
 import org.apache.commons.lang.StringUtils;
@@ -92,6 +93,18 @@ public class ManagedUpdateSite extends DescribedUpdateSite
         return getCaCertificate() != null;
     }
     
+    private boolean skipSignatureCheck;
+    
+    /**
+     * Returns whether to skip signature checks
+     * 
+     * @return whether to skip signature checks
+     */
+    public boolean isSkipSignatureCheck()
+    {
+        return skipSignatureCheck;
+    }    
+    
     private boolean disabled;
     
     /**
@@ -139,13 +152,16 @@ public class ManagedUpdateSite extends DescribedUpdateSite
             boolean useCaCertificate,
             String caCertificate,
             String note,
-            boolean disabled
+            boolean disabled,
+            boolean skipSignatureCheck
+            
     )
     {
         super(id, url);
         this.caCertificate = useCaCertificate?StringUtils.trim(caCertificate):null;
         this.note = note;
         this.disabled = disabled;
+        this.skipSignatureCheck = skipSignatureCheck;
     }
     
     /**
@@ -157,12 +173,13 @@ public class ManagedUpdateSite extends DescribedUpdateSite
     @Override
     protected JSONSignatureValidator getJsonSignatureValidator()
     {
-        return new NoCertJsonSignValidator(getId(), getCaCertificate());
-        /*if (isUseCaCertificate()) {
+        if(isSkipSignatureCheck()) {
+          return new NoCertJsonSignValidator(getId(), getCaCertificate());
+        } else if (isUseCaCertificate()) {
             return new ExtendedCertJsonSignValidator(getId(), getCaCertificate());
         } else {
             return super.getJsonSignatureValidator();
-        }*/
+        }
     }
     
     /**

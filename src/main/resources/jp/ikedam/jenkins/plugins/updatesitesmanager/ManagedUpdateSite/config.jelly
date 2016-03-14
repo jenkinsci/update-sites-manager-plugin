@@ -35,6 +35,9 @@ THE SOFTWARE.
     <f:entry title="${%Note}" field="note">
         <f:textbox />
     </f:entry>
+    <f:entry title="${%Skip Signature Check}" field="skipSignatureCheck">
+        <f:checkbox />
+    </f:entry>
     <f:optionalBlock field="useCaCertificate" inline="true" title="${%Need CA Certificate}">
       <f:entry title="${%CA Certificate}" field="caCertificate">
         <f:textarea />
