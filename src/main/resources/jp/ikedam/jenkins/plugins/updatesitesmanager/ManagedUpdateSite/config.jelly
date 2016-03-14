@@ -43,4 +43,7 @@ THE SOFTWARE.
         <f:textarea />
       </f:entry>
     </f:optionalBlock>
+    <f:validateButton
+       title="${%Check Connection}" progress="${%Testing...}"
+       method="checkConnection" with="id,url,useCaCertificate,caCertificate,note,disable,skipSignatureCheck" />    
 </j:jelly>
