@@ -90,7 +90,7 @@ public class UpdateSitesManagerJenkinsTest {
                 false,
                 null,
                 null,
-                false
+                false, false
         );
         // Multiple update site.
         jRule.getInstance().getUpdateCenter().getSites().clear();
@@ -129,7 +129,7 @@ public class UpdateSitesManagerJenkinsTest {
     public void shouldSubmitSites() throws Exception {
         UpdateSite site1 = new UpdateSite("test1", "http://example.com/test/update-center.json");
         UpdateSite site2 = new ManagedUpdateSite("test2", "http://example.com/test2/update-center.json",
-                false, null, "", false
+                false, null, "", false, false
         );
         jRule.getInstance().getUpdateCenter().getSites().clear();
         jRule.getInstance().getUpdateCenter().getSites().add(site1);
@@ -152,7 +152,7 @@ public class UpdateSitesManagerJenkinsTest {
     @Test
     public void shouldReturn400OnBlankId() throws Exception {
         UpdateSite site = new ManagedUpdateSite(" ", "http://example.com/test2/update-center.json",
-                false, null, null, false
+                false, null, null, false, false
         );
         jRule.getInstance().getUpdateCenter().getSites().clear();
         jRule.getInstance().getUpdateCenter().getSites().add(site);
@@ -169,7 +169,7 @@ public class UpdateSitesManagerJenkinsTest {
     public void shouldReturn400OnDuplicatedId() throws Exception {
         UpdateSite site1 = new UpdateSite("test1", "http://example.com/test/update-center.json");
         UpdateSite site2 = new ManagedUpdateSite("test1", "http://example.com/test2/update-center.json",
-                false, null, null, false
+                false, null, null, false, false
         );
         jRule.getInstance().getUpdateCenter().getSites().clear();
         jRule.getInstance().getUpdateCenter().getSites().add(site1);

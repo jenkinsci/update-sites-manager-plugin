@@ -129,7 +129,7 @@ public class ManagedUpdateSiteJenkinsTest {
     }
 
     private ManagedUpdateSite.DescriptorImpl getDescriptor() {
-        return (ManagedUpdateSite.DescriptorImpl) new ManagedUpdateSite(null, null, false, null, null, false)
+        return (ManagedUpdateSite.DescriptorImpl) new ManagedUpdateSite(null, null, false, null, null, false, false)
                 .getDescriptor();
     }
 
@@ -143,7 +143,7 @@ public class ManagedUpdateSiteJenkinsTest {
                 false,
                 null,
                 "test",
-                false
+                false, false
         );
     }
 
@@ -154,9 +154,10 @@ public class ManagedUpdateSiteJenkinsTest {
                 boolean useCaCertificate,
                 String caCertificate,
                 String note,
-                boolean disabled
+                boolean disabled,
+                boolean skipSignatureCheck
         ) {
-            super(id, url, useCaCertificate, caCertificate, note, disabled);
+            super(id, url, useCaCertificate, caCertificate, note, disabled, skipSignatureCheck);
         }
     }
 }
