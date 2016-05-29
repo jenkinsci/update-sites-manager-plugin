@@ -5,10 +5,10 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jvnet.hudson.test.JenkinsRecipe;
 import org.jvnet.hudson.test.JenkinsRule;
-import org.mortbay.jetty.HttpConnection;
-import org.mortbay.jetty.Server;
-import org.mortbay.jetty.bio.SocketConnector;
-import org.mortbay.jetty.handler.AbstractHandler;
+import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,13 +52,13 @@ public @interface WebServerRecipe {
 
         public void setup(final JenkinsRule jenkinsRule, WebServerRecipe recipe) throws Exception {
             server = new Server();
-            SocketConnector connector = new SocketConnector();
+            ServerConnector connector = new ServerConnector(server);
             server.addConnector(connector);
             server.setHandler(new AbstractHandler() {
                 @Override
                 public void handle(
-                        String target, HttpServletRequest request,
-                        HttpServletResponse response, int dispatch
+                        String target, Request baseRequest, HttpServletRequest request,
+                        HttpServletResponse response
                 ) throws IOException, ServletException {
                     String responseBody = null;
                     LOGGER.info("UC gets request to: {}", request.getRequestURI());
@@ -67,11 +67,11 @@ public @interface WebServerRecipe {
                                 getResource(target, jenkinsRule.getTestDescription().getTestClass()),
                                 "UTF-8");
                     } catch (URISyntaxException e) {
-                        HttpConnection.getCurrentConnection().getRequest().setHandled(true);
+                        baseRequest.setHandled(true);
                         response.setStatus(HttpServletResponse.SC_NOT_FOUND);
                     }
                     if (responseBody != null) {
-                        HttpConnection.getCurrentConnection().getRequest().setHandled(true);
+                        baseRequest.setHandled(true);
                         response.setContentType("text/plain; charset=utf-8");
                         response.setStatus(HttpServletResponse.SC_OK);
                         response.getOutputStream().write(responseBody.getBytes());
