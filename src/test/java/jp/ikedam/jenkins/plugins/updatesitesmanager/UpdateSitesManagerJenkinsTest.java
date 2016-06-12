@@ -136,14 +136,14 @@ public class UpdateSitesManagerJenkinsTest {
         jRule.getInstance().getUpdateCenter().getSites().add(site2);
 
         JenkinsRule.WebClient wc = jRule.createWebClient();
-        wc.setPrintContentOnFailingStatusCode(false);
+        wc.getOptions().setPrintContentOnFailingStatusCode(false);
 
         // configure
         HtmlForm form = wc.goTo(UpdateSitesManager.URL).getFormByName("sitesForm");
         HtmlPage submit = jRule.submit(form);
 
         assertThat("should be on manage url after submit",
-                submit.getWebResponse().getUrl().toString(), endsWith("manage"));
+                submit.getWebResponse().getWebRequest().getUrl().toString(), endsWith("manage"));
 
         assertThat("should see all sites", jRule.getInstance().getUpdateCenter().getSites(), hasSize(2));
         jRule.assertEqualDataBoundBeans(site2, jRule.getInstance().getUpdateCenter().getSites().get(1));
@@ -188,7 +188,7 @@ public class UpdateSitesManagerJenkinsTest {
     public void testPrivilege() throws Exception {
         JenkinsRule.WebClient wcUser = jRule.createWebClient();
         wcUser.login("user", "user");
-        wcUser.setPrintContentOnFailingStatusCode(false);
+        wcUser.getOptions().setPrintContentOnFailingStatusCode(false);
 
         ex.expect(FailingHttpStatusCodeException.class);
         ex.expectMessage(containsString("403"));

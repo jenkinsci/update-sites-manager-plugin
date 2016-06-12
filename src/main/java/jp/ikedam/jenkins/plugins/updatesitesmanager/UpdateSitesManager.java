@@ -116,7 +116,7 @@ public class UpdateSitesManager extends ManagementLink {
      */
     public List<UpdateSite> getManagedUpdateSiteList() {
         return newArrayList(Iterables.filter(
-                Jenkins.getInstance().getUpdateCenter().getSites(),
+                Jenkins.getActiveInstance().getUpdateCenter().getSites(),
                 new IsSiteManaged())
         );
     }
@@ -128,7 +128,7 @@ public class UpdateSitesManager extends ManagementLink {
      */
     public List<UpdateSite> getNotManagedUpdateSiteList() {
         return newArrayList(Iterables.filter(
-                Jenkins.getInstance().getUpdateCenter().getSites(),
+                Jenkins.getActiveInstance().getUpdateCenter().getSites(),
                 not(new IsSiteManaged())
         ));
     }
@@ -156,8 +156,8 @@ public class UpdateSitesManager extends ManagementLink {
         shouldNotContainDuplicatedIds(newSitesList);
         shouldNotContainBlankIds(newSitesList);
 
-        Jenkins.getInstance().getUpdateCenter().getSites().replaceBy(newSitesList);
-        Jenkins.getInstance().getUpdateCenter().save();
+        Jenkins.getActiveInstance().getUpdateCenter().getSites().replaceBy(newSitesList);
+        Jenkins.getActiveInstance().getUpdateCenter().save();
 
         FormApply.success(req.getContextPath() + "/manage").generateResponse(req, rsp, null);
     }

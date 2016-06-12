@@ -108,11 +108,11 @@ public class DescribedUpdateSiteJenkinsTest {
         jRule.getInstance().getUpdateCenter().getSites().add(site);
 
         JenkinsRule.WebClient wcAdmin = jRule.createWebClient();
-        wcAdmin.setPrintContentOnFailingStatusCode(false);
+        wcAdmin.getOptions().setPrintContentOnFailingStatusCode(false);
         wcAdmin.login("admin", "admin");
 
         JenkinsRule.WebClient wcUser = jRule.createWebClient();
-        wcUser.setPrintContentOnFailingStatusCode(false);
+        wcUser.getOptions().setPrintContentOnFailingStatusCode(false);
         wcUser.login("user", "user");
 
         // configure
@@ -128,10 +128,10 @@ public class DescribedUpdateSiteJenkinsTest {
     @Test
     public void shouldRedirectOnGetReqOfUpdate() throws Exception {
         JenkinsRule.WebClient wc = jRule.createWebClient();
-        wc.setPrintContentOnFailingStatusCode(false);
+        wc.getOptions().setPrintContentOnFailingStatusCode(false);
 
         HtmlPage htmlPage = wc.goTo(UpdateSitesManager.URL + "/update");
         assertThat("should redirect",
-                htmlPage.getWebResponse().getUrl().toString(), endsWith(UpdateSitesManager.URL + "/"));
+                htmlPage.getWebResponse().getWebRequest().getUrl().toString(), endsWith(UpdateSitesManager.URL + "/"));
     }
 }
