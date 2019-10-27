@@ -144,8 +144,12 @@ public class UpdateSitesManager extends ManagementLink {
 
     /**
      * Update all registered sites with concatenation of managed and not managed
+     * @param req the request
+     * @param rsp the response
      * @param managed managed sites form submitted form
-     * @return redirect to same url if all ok
+     * @throws ServletException thrown when failed to generate response
+     * @throws IOException thrown when failed to generate response or to save configurations
+     * @throws FormException thrown when inappropriate configurations
      */
     @OnlyAdminister
     @IgnoreNotPOST

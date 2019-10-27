@@ -41,8 +41,8 @@ abstract public class DescribedUpdateSite extends UpdateSite implements Describa
     /**
      * Constructor
      * 
-     * @param id
-     * @param url
+     * @param id id for the site
+     * @param url URL for the site
      */
     public DescribedUpdateSite(String id, String url)
     {
@@ -79,7 +79,7 @@ abstract public class DescribedUpdateSite extends UpdateSite implements Describa
      * 
      * Returns nothing when disabled.
      * 
-     * @return
+     * @return list of available plugins
      * @see hudson.model.UpdateSite#getAvailables()
      */
     @Override
@@ -93,11 +93,11 @@ abstract public class DescribedUpdateSite extends UpdateSite implements Describa
     }
     
     /**
-     * Returns the list of plugins that are updates to currently installed ones.
+     * Returns the list of plugins that have updates for currently installed ones.
      * 
      * Returns nothing when disabled.
      * 
-     * @return
+     * @return list of plugins with updates
      * @see hudson.model.UpdateSite#getUpdates()
      */
     @Override
@@ -111,11 +111,11 @@ abstract public class DescribedUpdateSite extends UpdateSite implements Describa
     }
     
     /**
-     * Returns true if it's time for us to check for new version.
+     * Returns true if it's time for us to check for newer versions.
      * 
      * Always returns false when disabled.
      * 
-     * @return
+     * @return {@code true} if time to check for newer versions.
      * @see hudson.model.UpdateSite#isDue()
      */
     @Override

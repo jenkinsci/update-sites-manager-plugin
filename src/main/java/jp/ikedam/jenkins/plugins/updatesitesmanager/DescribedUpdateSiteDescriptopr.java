@@ -40,8 +40,8 @@ public abstract class DescribedUpdateSiteDescriptopr extends Descriptor<Describe
     /**
      * Validate id
      * 
-     * @param id
-     * @return
+     * @param id id to validate
+     * @return the validation result
      */
     public FormValidation doCheckId(@QueryParameter String id)
     {
@@ -55,8 +55,8 @@ public abstract class DescribedUpdateSiteDescriptopr extends Descriptor<Describe
     /**
      * Validate url
      * 
-     * @param url
-     * @return
+     * @param url the URL to validate
+     * @return the validation result
      */
     public FormValidation doCheckUrl(@QueryParameter String url)
     {

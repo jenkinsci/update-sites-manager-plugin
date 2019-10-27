@@ -75,6 +75,8 @@ public class ManagedUpdateSite extends DescribedUpdateSite
      * Set the CA certificate to verify the signature.
      * 
      * Mainly for testing Purpose.
+     *
+     * @param caCertificate CA certificate
      */
     public void setCaCertificate(String caCertificate)
     {
@@ -124,12 +126,12 @@ public class ManagedUpdateSite extends DescribedUpdateSite
     /**
      * Create a new instance
      * 
-     * @param id
-     * @param url
-     * @param useCaCertificate
-     * @param caCertificate
-     * @param note
-     * @param disabled
+     * @param id id for the site
+     * @param url URL for the site
+     * @param useCaCertificate whether to use a specified CA certificate
+     * @param caCertificate CA certificate to verify the site
+     * @param note note
+     * @param disabled {@code true} to disable the site
      */
     @DataBoundConstructor
     public ManagedUpdateSite(
@@ -170,11 +172,11 @@ public class ManagedUpdateSite extends DescribedUpdateSite
     static public class DescriptorImpl extends DescribedUpdateSiteDescriptopr
     {
         /**
-         * Returns the name of this UpdateSite.
+         * Returns the kind name of this UpdateSite.
          * 
          * shown when select UpdateSite to create.
          * 
-         * @return
+         * @return the kind name of the site
          * @see hudson.model.Descriptor#getDisplayName()
          */
         @Override
@@ -186,7 +188,9 @@ public class ManagedUpdateSite extends DescribedUpdateSite
         /**
          * Returns whether the certificate is valid.
          * 
-         * @return FormValidation object
+         * @param useCaCertificate {@code true} to use a specific CA certificate
+         * @param caCertificate the CA certificate
+         * @return FormValidation the validation result
          */
         public FormValidation doCheckCaCertificate(
                 @QueryParameter boolean useCaCertificate,
