@@ -23,23 +23,28 @@
  */
 package jp.ikedam.jenkins.plugins.updatesitesmanager;
 
+import static org.apache.commons.lang.StringUtils.isEmpty;
+import hudson.Extension;
+import hudson.util.FormValidation;
+
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import hudson.Extension;
-import hudson.util.FormValidation;
+import javax.annotation.Nonnull;
+import javax.servlet.ServletException;
 
 import jenkins.util.JSONSignatureValidator;
 import jp.ikedam.jenkins.plugins.updatesitesmanager.internal.ExtendedCertJsonSignValidator;
+import jp.ikedam.jenkins.plugins.updatesitesmanager.internal.NoCertJsonSignValidator;
+
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
-
-import javax.annotation.Nonnull;
 
 /**
  * Extended UpdateSite to be managed in UpdateSitesManager.
@@ -93,6 +98,18 @@ public class ManagedUpdateSite extends DescribedUpdateSite
         return getCaCertificate() != null;
     }
     
+    private boolean skipSignatureCheck;
+    
+    /**
+     * Returns whether to skip signature checks
+     * 
+     * @return whether to skip signature checks
+     */
+    public boolean isSkipSignatureCheck()
+    {
+        return skipSignatureCheck;
+    }    
+    
     private boolean disabled;
     
     /**
@@ -140,13 +157,16 @@ public class ManagedUpdateSite extends DescribedUpdateSite
             boolean useCaCertificate,
             String caCertificate,
             String note,
-            boolean disabled
+            boolean disabled,
+            boolean skipSignatureCheck
+            
     )
     {
         super(id, url);
         this.caCertificate = useCaCertificate?StringUtils.trim(caCertificate):null;
         this.note = note;
         this.disabled = disabled;
+        this.skipSignatureCheck = skipSignatureCheck;
     }
     
     /**
@@ -158,7 +178,9 @@ public class ManagedUpdateSite extends DescribedUpdateSite
     @Override
     protected JSONSignatureValidator getJsonSignatureValidator()
     {
-        if (isUseCaCertificate()) {
+        if(isSkipSignatureCheck()) {
+          return new NoCertJsonSignValidator(getId(), getCaCertificate());
+        } else if (isUseCaCertificate()) {
             return new ExtendedCertJsonSignValidator(getId(), getCaCertificate());
         } else {
             return super.getJsonSignatureValidator();
@@ -234,6 +256,26 @@ public class ManagedUpdateSite extends DescribedUpdateSite
             }
             
             return FormValidation.ok();
+        }
+        
+        public FormValidation doCheckConnection(
+              @QueryParameter String id,
+              @QueryParameter String url,
+              @QueryParameter boolean useCaCertificate,
+              @QueryParameter String caCertificate,
+              @QueryParameter String note,
+              @QueryParameter boolean disabled,
+              @QueryParameter boolean skipSignatureCheck
+              ) throws IOException, ServletException {
+          if(isEmpty(id)) return FormValidation.error("id not set");
+          if(isEmpty(url)) return FormValidation.error("url not set");
+          ManagedUpdateSite site = new ManagedUpdateSite(id, url, useCaCertificate, caCertificate, note, disabled, skipSignatureCheck);
+          site.doInvalidateData();
+          FormValidation result = site.updateDirectlyNow(false);
+          if(!result.equals(FormValidation.ok())) return result;
+          result = site.doVerifySignature();
+          if(result.equals(FormValidation.ok())) return FormValidation.okWithMarkup("Connection tested successfully...");
+          return result;
         }
         
     }
