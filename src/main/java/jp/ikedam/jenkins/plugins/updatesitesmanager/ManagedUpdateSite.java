@@ -24,21 +24,50 @@
 package jp.ikedam.jenkins.plugins.updatesitesmanager;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Method;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLConnection;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import hudson.Extension;
+import hudson.ProxyConfiguration;
+import hudson.Util;
+import hudson.model.Item;
+import hudson.model.Queue;
+import hudson.model.UpdateSite;
+import hudson.model.queue.Tasks;
+import hudson.security.ACL;
 import hudson.util.FormValidation;
-
+import hudson.util.ListBoxModel;
+import jenkins.model.Jenkins;
 import jenkins.util.JSONSignatureValidator;
 import jp.ikedam.jenkins.plugins.updatesitesmanager.internal.ExtendedCertJsonSignValidator;
+
+import org.acegisecurity.Authentication;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 
+import com.cloudbees.plugins.credentials.CredentialsMatcher;
+import com.cloudbees.plugins.credentials.CredentialsMatchers;
+import com.cloudbees.plugins.credentials.CredentialsProvider;
+import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
+import com.cloudbees.plugins.credentials.common.StandardUsernameCredentials;
+import com.cloudbees.plugins.credentials.domains.DomainRequirement;
+import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
+
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
 /**
@@ -56,7 +85,28 @@ import javax.annotation.Nonnull;
 public class ManagedUpdateSite extends DescribedUpdateSite
 {
     private static Logger LOGGER = Logger.getLogger(ManagedUpdateSite.class.getName());
-    
+
+    private String credentialsId;
+
+    /**
+     * Returns the credentials to use with the update site URL.
+     * 
+     * @return the credentials identifier
+     */
+    public String getCredentialsId() {
+        return credentialsId;
+    }
+
+    /**
+     * Returns the credentials to use with the update site URL.
+     * 
+     * @return the credentials identifier
+     */
+    @DataBoundSetter
+    public void setCredentialsId(String credentialsId) {
+        this.credentialsId = Util.fixEmptyAndTrim(credentialsId);
+    }
+
     private String caCertificate;
     
     /**
@@ -148,7 +198,41 @@ public class ManagedUpdateSite extends DescribedUpdateSite
         this.note = note;
         this.disabled = disabled;
     }
-    
+
+    @Override
+    public FormValidation updateDirectlyNow(boolean signatureCheck) throws IOException {
+        URL url = new URL(getUrl());
+
+        URLConnection con = ProxyConfiguration.open(url);
+        if (con instanceof HttpURLConnection) {
+            // prevent problems from misbehaving plugins disabling redirects by
+            // default
+            ((HttpURLConnection) con).setInstanceFollowRedirects(true);
+            UpdateSiteManagerHelper.addAuthorisationHeader(con, credentialsId);
+        }
+
+        String json;
+        try (InputStream is = con.getInputStream()) {
+            String jsonp = IOUtils.toString(is, "UTF-8");
+            int start = jsonp.indexOf('{');
+            int end = jsonp.lastIndexOf('}');
+            if (start >= 0 && end > start) {
+                json = jsonp.substring(start, end + 1);
+            } else {
+                throw new IOException("Could not find JSON in " + url);
+            }
+        }
+
+        Method method;
+        try {
+            method = UpdateSite.class.getDeclaredMethod("updateData", String.class, boolean.class);
+            method.setAccessible(true);
+            return (FormValidation) method.invoke(this, json, false);
+        } catch (SecurityException | ReflectiveOperationException e) {
+            throw new IOException(e);
+        }
+    }
+
     /**
      * Verifier for the signature of downloaded update-center.json.
      *
@@ -156,12 +240,12 @@ public class ManagedUpdateSite extends DescribedUpdateSite
      */
     @Nonnull
     @Override
-    protected JSONSignatureValidator getJsonSignatureValidator()
+    protected JSONSignatureValidator getJsonSignatureValidator(@CheckForNull String name)
     {
         if (isUseCaCertificate()) {
-            return new ExtendedCertJsonSignValidator(getId(), getCaCertificate());
+            return new ExtendedCertJsonSignValidator(name, getCaCertificate());
         } else {
-            return super.getJsonSignatureValidator();
+            return super.getJsonSignatureValidator(name);
         }
     }
     
@@ -235,6 +319,58 @@ public class ManagedUpdateSite extends DescribedUpdateSite
             
             return FormValidation.ok();
         }
-        
+
+        public FormValidation doCheckCredentialsId(@CheckForNull @AncestorInPath Item item,
+                                                   @QueryParameter String credentialsId,
+                                                   @QueryParameter String serverUrl) {
+            if (item == null) {
+                if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
+                    return FormValidation.ok();
+                }
+            } else if (!item.hasPermission(Item.EXTENDED_READ) && !item.hasPermission(CredentialsProvider.USE_ITEM)) {
+                return FormValidation.ok();
+            }
+            if (!StringUtils.isBlank(credentialsId)) {
+                List<DomainRequirement> domainRequirement = URIRequirementBuilder.fromUri(serverUrl).build();
+                if (CredentialsProvider.listCredentials(StandardUsernameCredentials.class, item, getAuthentication(item), domainRequirement, CredentialsMatchers.withId(credentialsId)).isEmpty()) {
+                    return FormValidation.error("invalid credentials");
+                }
+            }
+            return FormValidation.ok();
+        }
+
+        public ListBoxModel doFillCredentialsIdItems(final @AncestorInPath Item item,
+                                                     @QueryParameter String credentialsId,
+                                                     final @QueryParameter String url) {
+            StandardListBoxModel result = new StandardListBoxModel();
+
+            credentialsId = StringUtils.trimToEmpty(credentialsId);
+            if (item == null) {
+                if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
+                    return result.includeCurrentValue(credentialsId);
+                }
+            } else {
+                if (!item.hasPermission(Item.EXTENDED_READ) && !item.hasPermission(CredentialsProvider.USE_ITEM)) {
+                    return result.includeCurrentValue(credentialsId);
+                }
+            }
+
+            Authentication authentication = getAuthentication(item);
+            List<DomainRequirement> build = URIRequirementBuilder.fromUri(url).build();
+            CredentialsMatcher always = CredentialsMatchers.always();
+            Class<StandardUsernameCredentials> type = StandardUsernameCredentials.class;
+
+            result.includeEmptyValue();
+            if (item != null) {
+                result.includeMatchingAs(authentication, item, type, build, always);
+            } else {
+                result.includeMatchingAs(authentication, Jenkins.get(), type, build, always);
+            }
+            return result;
+        }
+
+        protected Authentication getAuthentication(Item item) {
+            return item instanceof Queue.Task ? Tasks.getAuthenticationOf((Queue.Task) item) : ACL.SYSTEM;
+        }
     }
 }

@@ -26,7 +26,6 @@ package jp.ikedam.jenkins.plugins.updatesitesmanager;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import hudson.util.FormValidation;
-import jenkins.model.DownloadSettings;
 import jp.ikedam.jenkins.plugins.updatesitesmanager.testext.WebServerRecipe;
 import org.apache.commons.io.FileUtils;
 import org.junit.Rule;
@@ -61,7 +60,7 @@ public class ManagedUpdateSiteJenkinsTest {
 
     @Test
     public void testDescriptorDoCheckCaCertificate() throws IOException, URISyntaxException {
-        String caCertificate = FileUtils.readFileToString(getResource("caCertificate.crt", getClass()));
+        String caCertificate = FileUtils.readFileToString(getResource("caCertificate.crt", getClass()), "UTF-8");
 
         assertThat("Always ok if certificate is disabled",
                 getDescriptor().doCheckCaCertificate(false, null).kind, is(OK));
@@ -96,7 +95,6 @@ public class ManagedUpdateSiteJenkinsTest {
     @WebServerRecipe
     public void shouldFailUpdateWithoutCert() throws Exception {
         // Ensure to use server-based download.
-        DownloadSettings.get().setUseBrowser(false);
         TestManagedUpdateSite site = forMethod(jRule.getTestDescription().getMethodName());
 
         jRule.getInstance().getUpdateCenter().getSites().clear();
@@ -115,8 +113,7 @@ public class ManagedUpdateSiteJenkinsTest {
     @WebServerRecipe
     public void shouldSuccessfullyUpdateWithWorkingUC() throws Exception {
         // Ensure to use server-based download.
-        DownloadSettings.get().setUseBrowser(false);
-        String caCertificate = FileUtils.readFileToString(getResource("caCertificate.crt", getClass()));
+        String caCertificate = FileUtils.readFileToString(getResource("caCertificate.crt", getClass()), "UTF-8");
 
         TestManagedUpdateSite site = forMethod(jRule.getTestDescription().getMethodName());
 

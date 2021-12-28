@@ -4,7 +4,7 @@
   <properties>
     <hudson.security.HudsonPrivateSecurityRealm_-Details>
       <!-- admin -->
-      <passwordHash>jBiboj:4e716bab6438c4947fe4493605b5875c66722630084cda25588c3655049eb984</passwordHash>
+      <passwordHash>#jbcrypt:$2a$10$VVuI8yWPQLf6a8ONRxt7VeW8sgnsToG1isG496VBhMGTFjNn4VAwK</passwordHash>
     </hudson.security.HudsonPrivateSecurityRealm_-Details>
   </properties>
 </user>
