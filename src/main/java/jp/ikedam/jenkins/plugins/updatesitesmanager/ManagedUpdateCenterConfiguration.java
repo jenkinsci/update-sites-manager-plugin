@@ -24,9 +24,19 @@
 package jp.ikedam.jenkins.plugins.updatesitesmanager;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpRetryException;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 
+import javax.net.ssl.SSLHandshakeException;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.output.NullOutputStream;
+
+import hudson.ProxyConfiguration;
+import hudson.model.UpdateCenter.ConnectionCheckJob;
 import hudson.model.UpdateCenter.DownloadJob;
 import hudson.model.UpdateCenter.UpdateCenterConfiguration;
 
@@ -43,6 +53,29 @@ public class ManagedUpdateCenterConfiguration extends UpdateCenterConfiguration 
         URLConnection uc = super.connect(job, src);
         UpdateSiteManagerHelper.addAuthorisationHeader(uc, credentialsId);
         return uc;
+    }
+
+    @Override
+    public void checkUpdateCenter(ConnectionCheckJob job, String url) throws IOException {
+        try {
+            URLConnection connection = ProxyConfiguration.open(new URL(url));
+            UpdateSiteManagerHelper.addAuthorisationHeader(connection, credentialsId);
+
+            if (connection instanceof HttpURLConnection) {
+                int responseCode = ((HttpURLConnection) connection).getResponseCode();
+                if (HttpURLConnection.HTTP_OK != responseCode) {
+                    throw new HttpRetryException("Invalid response code (" + responseCode + ") from URL: " + url, responseCode);
+                }
+            } else {
+                try (InputStream is = connection.getInputStream()) {
+                    IOUtils.copy(is, NullOutputStream.NULL_OUTPUT_STREAM);
+                }
+            }
+        } catch (SSLHandshakeException e) {
+            if (e.getMessage().contains("PKIX path building failed"))
+                // fix up this crappy error message from JDK
+                throw new IOException("Failed to validate the SSL certificate of " + url, e);
+        }
     }
 
 }
