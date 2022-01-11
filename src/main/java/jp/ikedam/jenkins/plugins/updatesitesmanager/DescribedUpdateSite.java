@@ -153,7 +153,7 @@ abstract public class DescribedUpdateSite extends UpdateSite implements Describa
      */
     static public DescriptorExtensionList<DescribedUpdateSite, DescribedUpdateSiteDescriptopr> all()
     {
-        return Jenkins.getActiveInstance().getDescriptorList(DescribedUpdateSite.class);
+        return Jenkins.get().getDescriptorList(DescribedUpdateSite.class);
     }
     
     
@@ -166,6 +166,6 @@ abstract public class DescribedUpdateSite extends UpdateSite implements Describa
     @Override
     public DescribedUpdateSiteDescriptopr getDescriptor()
     {
-        return (DescribedUpdateSiteDescriptopr) Jenkins.getActiveInstance().getDescriptorOrDie(getClass());
+        return (DescribedUpdateSiteDescriptopr) Jenkins.get().getDescriptorOrDie(getClass());
     }
 }

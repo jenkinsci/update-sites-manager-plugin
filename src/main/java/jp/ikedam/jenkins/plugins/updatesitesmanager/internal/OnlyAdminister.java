@@ -13,6 +13,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.InvocationTargetException;
 
+import javax.servlet.ServletException;
+
 /**
  * Returns 403 if not permitted
  *
@@ -26,9 +28,9 @@ public @interface OnlyAdminister {
     class Processor extends Interceptor {
         @Override
         public Object invoke(StaplerRequest request, StaplerResponse response, Object instance, Object[] arguments)
-                throws IllegalAccessException, InvocationTargetException {
+                throws IllegalAccessException, InvocationTargetException, ServletException {
 
-            Jenkins.getInstance().checkPermission(Jenkins.ADMINISTER);
+            Jenkins.get().checkPermission(Jenkins.ADMINISTER);
             return target.invoke(request, response, instance, arguments);
         }
     }

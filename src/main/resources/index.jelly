@@ -3,5 +3,5 @@
 -->
 <?jelly escape-by-default='true'?>
 <div>
-  This plugin is to manage update sites, where Jenkins accesses in order to retrieve plugins.
+  This plugin is to manage update sites under security, where Jenkins accesses in order to retrieve plugins.
 </div>

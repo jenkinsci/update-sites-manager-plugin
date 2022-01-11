@@ -36,8 +36,6 @@ import jp.ikedam.jenkins.plugins.updatesitesmanager.internal.IgnoreNotPOST;
 import jp.ikedam.jenkins.plugins.updatesitesmanager.internal.OnlyAdminister;
 import jp.ikedam.jenkins.plugins.updatesitesmanager.internal.Sites;
 import org.apache.commons.lang.StringUtils;
-import org.kohsuke.stapler.HttpResponse;
-import org.kohsuke.stapler.HttpResponses;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 
@@ -116,7 +114,7 @@ public class UpdateSitesManager extends ManagementLink {
      */
     public List<UpdateSite> getManagedUpdateSiteList() {
         return newArrayList(Iterables.filter(
-                Jenkins.getActiveInstance().getUpdateCenter().getSites(),
+                Jenkins.get().getUpdateCenter().getSites(),
                 new IsSiteManaged())
         );
     }
@@ -128,7 +126,7 @@ public class UpdateSitesManager extends ManagementLink {
      */
     public List<UpdateSite> getNotManagedUpdateSiteList() {
         return newArrayList(Iterables.filter(
-                Jenkins.getActiveInstance().getUpdateCenter().getSites(),
+                Jenkins.get().getUpdateCenter().getSites(),
                 not(new IsSiteManaged())
         ));
     }
@@ -160,8 +158,8 @@ public class UpdateSitesManager extends ManagementLink {
         shouldNotContainDuplicatedIds(newSitesList);
         shouldNotContainBlankIds(newSitesList);
 
-        Jenkins.getActiveInstance().getUpdateCenter().getSites().replaceBy(newSitesList);
-        Jenkins.getActiveInstance().getUpdateCenter().save();
+        Jenkins.get().getUpdateCenter().getSites().replaceBy(newSitesList);
+        Jenkins.get().getUpdateCenter().save();
 
         FormApply.success(req.getContextPath() + "/manage").generateResponse(req, rsp, null);
     }
