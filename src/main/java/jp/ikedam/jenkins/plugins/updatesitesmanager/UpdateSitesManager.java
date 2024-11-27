@@ -1,18 +1,18 @@
 /*
  * The MIT License
- * 
+ *
  * Copyright (c) 2013 IKEDA Yasuyuki
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -23,6 +23,10 @@
  */
 package jp.ikedam.jenkins.plugins.updatesitesmanager;
 
+import static com.google.common.base.Predicates.not;
+import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.collect.Sets.newHashSet;
+
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
@@ -31,25 +35,18 @@ import hudson.model.Descriptor.FormException;
 import hudson.model.ManagementLink;
 import hudson.model.UpdateSite;
 import hudson.util.FormApply;
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.List;
+import javax.annotation.Nullable;
+import javax.servlet.ServletException;
 import jenkins.model.Jenkins;
 import jp.ikedam.jenkins.plugins.updatesitesmanager.internal.IgnoreNotPOST;
 import jp.ikedam.jenkins.plugins.updatesitesmanager.internal.OnlyAdminister;
 import jp.ikedam.jenkins.plugins.updatesitesmanager.internal.Sites;
 import org.apache.commons.lang.StringUtils;
-import org.kohsuke.stapler.HttpResponse;
-import org.kohsuke.stapler.HttpResponses;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
-
-import javax.annotation.Nullable;
-import javax.servlet.ServletException;
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.List;
-
-import static com.google.common.base.Predicates.not;
-import static com.google.common.collect.Lists.newArrayList;
-import static com.google.common.collect.Sets.newHashSet;
 
 /**
  * Page for manage UpdateSites.
@@ -59,10 +56,10 @@ import static com.google.common.collect.Sets.newHashSet;
  * <li>Manage UpdateSites, shown in Manage Jenkins page</li>
  * </ul>
  */
-@Extension(ordinal = Integer.MAX_VALUE - 410)   // show just after Manage Plugins (1.489 and later)
+@Extension(ordinal = Integer.MAX_VALUE - 410) // show just after Manage Plugins (1.489 and later)
 public class UpdateSitesManager extends ManagementLink {
 
-    public final static String URL = "updatesites";
+    public static final String URL = "updatesites";
 
     /**
      * Return the name of the link shown in Manage Jenkins page.
@@ -115,10 +112,8 @@ public class UpdateSitesManager extends ManagementLink {
      * @return a list of UpdateSites
      */
     public List<UpdateSite> getManagedUpdateSiteList() {
-        return newArrayList(Iterables.filter(
-                Jenkins.getActiveInstance().getUpdateCenter().getSites(),
-                new IsSiteManaged())
-        );
+        return newArrayList(
+                Iterables.filter(Jenkins.getActiveInstance().getUpdateCenter().getSites(), new IsSiteManaged()));
     }
 
     /**
@@ -127,10 +122,8 @@ public class UpdateSitesManager extends ManagementLink {
      * @return a list of UpdateSites
      */
     public List<UpdateSite> getNotManagedUpdateSiteList() {
-        return newArrayList(Iterables.filter(
-                Jenkins.getActiveInstance().getUpdateCenter().getSites(),
-                not(new IsSiteManaged())
-        ));
+        return newArrayList(
+                Iterables.filter(Jenkins.getActiveInstance().getUpdateCenter().getSites(), not(new IsSiteManaged())));
     }
 
     /**
@@ -138,7 +131,7 @@ public class UpdateSitesManager extends ManagementLink {
      *
      * @return a list of Desctiptor of DescribedUpdateSite.
      */
-    public List<DescribedUpdateSiteDescriptopr> getUpdateSiteDescriptorList() {
+    public List<DescribedUpdateSiteDescriptor> getUpdateSiteDescriptorList() {
         return DescribedUpdateSite.all();
     }
 
@@ -154,7 +147,8 @@ public class UpdateSitesManager extends ManagementLink {
     @OnlyAdminister
     @IgnoreNotPOST
     @SuppressWarnings("unused")
-    public void doUpdate(StaplerRequest req, StaplerResponse rsp, @Sites List<UpdateSite> managed) throws ServletException, IOException, FormException {
+    public void doUpdate(StaplerRequest req, StaplerResponse rsp, @Sites List<UpdateSite> managed)
+            throws ServletException, IOException, FormException {
         List<UpdateSite> newSitesList = newArrayList(Iterables.concat(getNotManagedUpdateSiteList(), managed));
 
         shouldNotContainDuplicatedIds(newSitesList);
@@ -187,7 +181,7 @@ public class UpdateSitesManager extends ManagementLink {
     }
 
     /**
-     * This predicate helps to filter which sites should be shown on UI as editable/not editable 
+     * This predicate helps to filter which sites should be shown on UI as editable/not editable
      */
     public static class IsSiteManaged implements Predicate<UpdateSite> {
         @Override
@@ -213,7 +207,6 @@ public class UpdateSitesManager extends ManagementLink {
         @Override
         public boolean apply(UpdateSite input) {
             return StringUtils.isBlank(input.getId());
-
         }
     }
 }

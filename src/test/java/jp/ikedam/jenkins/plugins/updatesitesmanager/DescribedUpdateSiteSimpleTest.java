@@ -1,18 +1,18 @@
 /*
  * The MIT License
- * 
+ *
  * Copyright (c) 2013 IKEDA Yasuyuki
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -23,16 +23,16 @@
  */
 package jp.ikedam.jenkins.plugins.updatesitesmanager;
 
+import static hudson.util.FormValidation.Kind.ERROR;
+import static hudson.util.FormValidation.Kind.OK;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import hudson.model.UpdateSite;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import static hudson.util.FormValidation.Kind.ERROR;
-import static hudson.util.FormValidation.Kind.OK;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
 
 /**
  * Tests for DescribedUpdateSite, not concerned with Jenkins.
@@ -44,7 +44,7 @@ public class DescribedUpdateSiteSimpleTest {
             super(id, url);
         }
 
-        public static class DescriptorImpl extends DescribedUpdateSiteDescriptopr {
+        public static class DescriptorImpl extends DescribedUpdateSiteDescriptor {
             @Override
             public String getDisplayName() {
                 return null;
@@ -56,10 +56,7 @@ public class DescribedUpdateSiteSimpleTest {
     public void shouldTrimUrlAndId() {
         String id = "testId";
         String url = "http://localhost/update-center.json";
-        UpdateSite site = new TestDescribedUpdateSite(
-                "  " + id + "  ",
-                " " + url + "\t"
-        );
+        UpdateSite site = new TestDescribedUpdateSite("  " + id + "  ", " " + url + "\t");
 
         assertThat("id is not trimmed", site.getId(), is(id));
         assertThat("url is not trimmed", site.getUrl(), is(url));
@@ -70,7 +67,7 @@ public class DescribedUpdateSiteSimpleTest {
         new TestDescribedUpdateSite(null, null);
     }
 
-    private DescribedUpdateSiteDescriptopr getDescriptor() {
+    private DescribedUpdateSiteDescriptor getDescriptor() {
         return new TestDescribedUpdateSite.DescriptorImpl();
     }
 
@@ -80,11 +77,9 @@ public class DescribedUpdateSiteSimpleTest {
     }
 
     @Test
-    @DataProvider(value = {
-            "empty,",
-            "blank, ",
-            "null value,null"
-    }, trimValues = false)
+    @DataProvider(
+            value = {"empty,", "blank, ", "null value,null"},
+            trimValues = false)
     public void shouldReturnValidationErrOnWrongId(String comment, String id) {
         assertThat(comment, getDescriptor().doCheckId(id).kind, is(ERROR));
     }
@@ -96,12 +91,9 @@ public class DescribedUpdateSiteSimpleTest {
     }
 
     @Test
-    @DataProvider(value = {
-            "empty,",
-            "blank, ",
-            "null value,null",
-            "non url,blabla"
-    }, trimValues = false)
+    @DataProvider(
+            value = {"empty,", "blank, ", "null value,null", "non url,blabla"},
+            trimValues = false)
     public void shouldReturnValidationErrOnCheckWrongUrl(String comment, String url) {
         assertThat(comment, getDescriptor().doCheckUrl(url).kind, is(ERROR));
     }

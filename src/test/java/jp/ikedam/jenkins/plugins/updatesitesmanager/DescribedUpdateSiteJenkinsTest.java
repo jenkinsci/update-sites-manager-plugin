@@ -1,18 +1,18 @@
 /*
  * The MIT License
- * 
+ *
  * Copyright (c) 2013 IKEDA Yasuyuki
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -23,23 +23,24 @@
  */
 package jp.ikedam.jenkins.plugins.updatesitesmanager;
 
-
-import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
-import com.gargoylesoftware.htmlunit.html.HtmlForm;
-import com.gargoylesoftware.htmlunit.html.HtmlPage;
-import hudson.model.UpdateSite;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.jvnet.hudson.test.JenkinsRule;
-import org.jvnet.hudson.test.TestExtension;
-import org.jvnet.hudson.test.recipes.LocalData;
-import org.kohsuke.stapler.DataBoundConstructor;
-
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.hasSize;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
+
+import hudson.model.UpdateSite;
+import javax.annotation.Nonnull;
+import org.htmlunit.FailingHttpStatusCodeException;
+import org.htmlunit.html.HtmlForm;
+import org.htmlunit.html.HtmlPage;
+import org.junit.Rule;
+import org.junit.Test;
+import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.TestExtension;
+import org.jvnet.hudson.test.recipes.LocalData;
+import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
  * Tests for DescribedUpdateSite, concerned with Jenkins.
@@ -47,13 +48,10 @@ import static org.hamcrest.Matchers.hasSize;
 public class DescribedUpdateSiteJenkinsTest {
 
     @Rule
-    public JenkinsRule jRule = new JenkinsRule();
-
-    @Rule
-    public ExpectedException ex = ExpectedException.none();
+    public JenkinsRule j = new JenkinsRule();
 
     public static class DescribedUpdateSiteForConfigureTest extends DescribedUpdateSite {
-        private String testValue;
+        private final String testValue;
 
         public String getTestValue() {
             return testValue;
@@ -66,7 +64,8 @@ public class DescribedUpdateSiteJenkinsTest {
         }
 
         @TestExtension("shouldShowAllDescribedSitesAsManaged")
-        static public class DescriptorImpl extends DescribedUpdateSiteDescriptopr {
+        public static class DescriptorImpl extends DescribedUpdateSiteDescriptor {
+            @Nonnull
             @Override
             public String getDisplayName() {
                 return "DescribedUpdateSiteForConfigureTest";
@@ -77,61 +76,56 @@ public class DescribedUpdateSiteJenkinsTest {
     @Test
     public void shouldShowAllDescribedSitesAsManaged() throws Exception {
         String existingId = "test1";
-        UpdateSite site1 = new UpdateSite(
-                existingId,
-                "http://example.com/test/update-center.json"
-        );
+        UpdateSite site1 = new UpdateSite(existingId, "http://example.com/test/update-center.json");
         DescribedUpdateSiteForConfigureTest target = new DescribedUpdateSiteForConfigureTest(
-                "test2",
-                "http://example.com/test2/update-center.json",
-                "Some value"
-        );
+                "test2", "http://example.com/test2/update-center.json", "Some value");
 
         // Multiple update site.
-        jRule.getInstance().getUpdateCenter().getSites().clear();
-        jRule.getInstance().getUpdateCenter().getSites().add(site1);
-        jRule.getInstance().getUpdateCenter().getSites().add(target);
+        j.getInstance().getUpdateCenter().getSites().clear();
+        j.getInstance().getUpdateCenter().getSites().add(site1);
+        j.getInstance().getUpdateCenter().getSites().add(target);
 
         UpdateSitesManager manager = new UpdateSitesManager();
 
         assertThat("should register described UC only", manager.getManagedUpdateSiteList(), hasSize(1));
-        jRule.assertEqualDataBoundBeans(target, manager.getManagedUpdateSiteList().get(0));
+        j.assertEqualDataBoundBeans(target, manager.getManagedUpdateSiteList().get(0));
     }
 
     @Test
     @LocalData
     public void testPrivilege() throws Exception {
-        UpdateSite site = new UpdateSite(
-                "test1",
-                "http://example.com/test/update-center.json"
-        );
-        jRule.getInstance().getUpdateCenter().getSites().add(site);
+        UpdateSite site = new UpdateSite("test1", "http://example.com/test/update-center.json");
+        j.getInstance().getUpdateCenter().getSites().add(site);
 
-        JenkinsRule.WebClient wcAdmin = jRule.createWebClient();
-        wcAdmin.getOptions().setPrintContentOnFailingStatusCode(false);
-        wcAdmin.login("admin", "admin");
+        HtmlForm form;
+        Exception ex;
+        try (JenkinsRule.WebClient wcUser = j.createWebClient()) {
+            wcUser.getOptions().setPrintContentOnFailingStatusCode(false);
+            wcUser.login("user", "user");
+            ex = assertThrows(FailingHttpStatusCodeException.class, () -> wcUser.goTo(UpdateSitesManager.URL));
+        }
+        assertNotNull(ex);
+        assertThat(ex.getMessage(), containsString("403"));
 
-        JenkinsRule.WebClient wcUser = jRule.createWebClient();
-        wcUser.getOptions().setPrintContentOnFailingStatusCode(false);
-        wcUser.login("user", "user");
-
-        // configure
-        HtmlForm form = wcAdmin.goTo(UpdateSitesManager.URL)
-                .getFormByName("sitesForm");
-        jRule.submit(form);
-
-        ex.expect(FailingHttpStatusCodeException.class);
-        ex.expectMessage(containsString("403"));
-        wcUser.goTo(UpdateSitesManager.URL);
+        try (JenkinsRule.WebClient wcAdmin = j.createWebClient()) {
+            wcAdmin.getOptions().setPrintContentOnFailingStatusCode(false);
+            wcAdmin.login("admin", "admin");
+            // configure
+            form = wcAdmin.goTo(UpdateSitesManager.URL).getFormByName("sitesForm");
+            j.submit(form);
+        }
     }
 
     @Test
     public void shouldRedirectOnGetReqOfUpdate() throws Exception {
-        JenkinsRule.WebClient wc = jRule.createWebClient();
-        wc.getOptions().setPrintContentOnFailingStatusCode(false);
-
-        HtmlPage htmlPage = wc.goTo(UpdateSitesManager.URL + "/update");
-        assertThat("should redirect",
-                htmlPage.getWebResponse().getWebRequest().getUrl().toString(), endsWith(UpdateSitesManager.URL + "/"));
+        HtmlPage htmlPage;
+        try (JenkinsRule.WebClient wc = j.createWebClient()) {
+            wc.getOptions().setPrintContentOnFailingStatusCode(false);
+            htmlPage = wc.goTo(UpdateSitesManager.URL + "/update");
+        }
+        assertThat(
+                "should redirect",
+                htmlPage.getWebResponse().getWebRequest().getUrl().toString(),
+                endsWith(UpdateSitesManager.URL + "/"));
     }
 }
