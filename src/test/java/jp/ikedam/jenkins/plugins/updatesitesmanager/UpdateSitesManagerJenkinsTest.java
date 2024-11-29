@@ -150,7 +150,7 @@ public class UpdateSitesManagerJenkinsTest {
         j.getInstance().getUpdateCenter().getSites().clear();
         j.getInstance().getUpdateCenter().getSites().add(site);
 
-        try(JenkinsRule.WebClient wc = j.createWebClient()) {
+        try (JenkinsRule.WebClient wc = j.createWebClient()) {
             HtmlForm form = wc.goTo(UpdateSitesManager.URL).getFormByName("sitesForm");
             Exception ex = assertThrows(FailingHttpStatusCodeException.class, () -> j.submit(form));
             assertThat(ex.getMessage(), containsString("400"));
@@ -166,7 +166,7 @@ public class UpdateSitesManagerJenkinsTest {
         j.getInstance().getUpdateCenter().getSites().add(site1);
         j.getInstance().getUpdateCenter().getSites().add(site2);
 
-        try(JenkinsRule.WebClient wc = j.createWebClient()) {
+        try (JenkinsRule.WebClient wc = j.createWebClient()) {
             HtmlForm form = wc.goTo(UpdateSitesManager.URL).getFormByName("sitesForm");
             Exception ex = assertThrows(FailingHttpStatusCodeException.class, () -> j.submit(form));
             assertThat(ex.getMessage(), containsString("400"));
@@ -180,7 +180,9 @@ public class UpdateSitesManagerJenkinsTest {
             wcUser.login("user", "user");
             wcUser.getOptions().setPrintContentOnFailingStatusCode(false);
 
-            Exception ex = assertThrows(FailingHttpStatusCodeException.class, () -> wcUser.goTo("%s/update".formatted(UpdateSitesManager.URL)));
+            Exception ex = assertThrows(
+                    FailingHttpStatusCodeException.class,
+                    () -> wcUser.goTo("%s/update".formatted(UpdateSitesManager.URL)));
             assertThat(ex.getMessage(), containsString("403"));
         }
     }
