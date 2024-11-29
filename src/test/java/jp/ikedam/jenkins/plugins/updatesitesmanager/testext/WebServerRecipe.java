@@ -108,8 +108,7 @@ public @interface WebServerRecipe {
          * @return resource file ready to read
          */
         public static File getResource(String name, Class<?> cls) throws URISyntaxException, FileNotFoundException {
-            String filename =
-                    "%s/%s".formatted(StringUtils.join(cls.getName().split("\\."), "/"), name);
+            String filename = "%s/%s".formatted(StringUtils.join(cls.getName().split("\\."), "/"), name);
             URL url = ClassLoader.getSystemResource(filename);
             if (url == null) {
                 throw new FileNotFoundException("Not found: %s".formatted(filename));

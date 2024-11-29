@@ -30,11 +30,9 @@ import static jp.ikedam.jenkins.plugins.updatesitesmanager.testext.WebServerReci
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assume.assumeThat;
 
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import hudson.util.FormValidation;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
@@ -60,7 +58,8 @@ public class ManagedUpdateSiteJenkinsTest {
 
     @Test
     public void testDescriptorDoCheckCaCertificate() throws IOException, URISyntaxException {
-        String caCertificate = FileUtils.readFileToString(getResource("caCertificate.crt", getClass()), Charset.defaultCharset());
+        String caCertificate =
+                FileUtils.readFileToString(getResource("caCertificate.crt", getClass()), Charset.defaultCharset());
 
         assertThat(
                 "Always ok if certificate is disabled", getDescriptor().doCheckCaCertificate(false, null).kind, is(OK));

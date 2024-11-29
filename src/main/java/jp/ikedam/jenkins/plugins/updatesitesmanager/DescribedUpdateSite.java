@@ -23,7 +23,6 @@
  */
 package jp.ikedam.jenkins.plugins.updatesitesmanager;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.DescriptorExtensionList;
 import hudson.ExtensionPoint;
 import hudson.model.Describable;
