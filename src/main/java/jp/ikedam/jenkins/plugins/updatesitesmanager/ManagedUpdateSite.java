@@ -33,8 +33,6 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import jakarta.annotation.Nonnull;
 import jenkins.util.JSONSignatureValidator;
 import jp.ikedam.jenkins.plugins.updatesitesmanager.internal.ExtendedCertJsonSignValidator;
 import org.apache.commons.lang.StringUtils;

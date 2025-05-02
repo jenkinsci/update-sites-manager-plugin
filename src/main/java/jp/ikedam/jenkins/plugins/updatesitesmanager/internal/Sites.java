@@ -1,6 +1,7 @@
 package jp.ikedam.jenkins.plugins.updatesitesmanager.internal;
 
 import hudson.model.UpdateSite;
+import jakarta.servlet.ServletException;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -8,8 +9,6 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.util.ArrayList;
 import java.util.List;
-
-import jakarta.servlet.ServletException;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.AnnotationHandler;
 import org.kohsuke.stapler.InjectedParameter;

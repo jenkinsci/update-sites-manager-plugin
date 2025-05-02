@@ -20,13 +20,6 @@ import hudson.model.queue.Tasks;
 import hudson.security.ACL;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
-import jenkins.model.Jenkins;
-import org.apache.commons.lang.StringUtils;
-import org.kohsuke.stapler.AncestorInPath;
-import org.kohsuke.stapler.DataBoundSetter;
-import org.kohsuke.stapler.QueryParameter;
-import org.springframework.security.core.Authentication;
-
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -36,6 +29,13 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
+import jenkins.model.Jenkins;
+import org.apache.commons.lang.StringUtils;
+import org.kohsuke.stapler.AncestorInPath;
+import org.kohsuke.stapler.DataBoundSetter;
+import org.kohsuke.stapler.QueryParameter;
+import org.kohsuke.stapler.interceptor.RequirePOST;
+import org.springframework.security.core.Authentication;
 
 public class CredentialRequiredUpdateSite extends ManagedUpdateSite {
     private String credentialsId;
@@ -66,9 +66,8 @@ public class CredentialRequiredUpdateSite extends ManagedUpdateSite {
 
     @Nullable
     private StandardUsernamePasswordCredentials getCredential() {
-        List<StandardUsernamePasswordCredentials> credentials =
-                CredentialsProvider.lookupCredentialsInItem(StandardUsernamePasswordCredentials.class,
-                        null, null, null);
+        List<StandardUsernamePasswordCredentials> credentials = CredentialsProvider.lookupCredentialsInItem(
+                StandardUsernamePasswordCredentials.class, null, null, null);
         return CredentialsMatchers.firstOrNull(credentials, CredentialsMatchers.withId(credentialsId));
     }
 
@@ -76,21 +75,22 @@ public class CredentialRequiredUpdateSite extends ManagedUpdateSite {
     public @NonNull FormValidation updateDirectlyNow(boolean signatureCheck) throws IOException {
         URL url = new URL(getUrl());
 
-        if(credentialsId == null) {
+        if (credentialsId == null) {
             return FormValidation.error(Messages.CredentialRequiredUpdateSite_credentialsNotFound());
         }
 
         StandardUsernamePasswordCredentials credential = getCredential();
-        if(credential != null) {
-            String token = String.format("%s:%s", credential.getUsername(), credential.getPassword().getPlainText());
-            String basicAuth = String.format("Basic %s", Base64.getEncoder().encodeToString((token.getBytes(StandardCharsets.UTF_8))));
+        if (credential != null) {
+            String token = String.format(
+                    "%s:%s", credential.getUsername(), credential.getPassword().getPlainText());
+            String basicAuth = String.format(
+                    "Basic %s", Base64.getEncoder().encodeToString((token.getBytes(StandardCharsets.UTF_8))));
 
             HttpClient httpClient = ProxyConfiguration.newHttpClient();
             HttpRequest httpRequest;
             try {
                 httpRequest = ProxyConfiguration.newHttpRequestBuilder(url.toURI())
-                        .headers("Accept", "application/json",
-                                 "Authorization", basicAuth)
+                        .headers("Accept", "application/json", "Authorization", basicAuth)
                         .GET()
                         .build();
             } catch (IllegalArgumentException | URISyntaxException e) {
@@ -137,6 +137,7 @@ public class CredentialRequiredUpdateSite extends ManagedUpdateSite {
         }
 
         @SuppressWarnings("unused") // invoked from stapler view
+        @RequirePOST
         public FormValidation doCheckCredentialsId(
                 @CheckForNull @AncestorInPath Item item,
                 @QueryParameter String credentialsId,
@@ -165,6 +166,7 @@ public class CredentialRequiredUpdateSite extends ManagedUpdateSite {
         }
 
         @SuppressWarnings("unused") // invoked from stapler view
+        @RequirePOST
         public ListBoxModel doFillCredentialsIdItems(
                 final @AncestorInPath Item item,
                 @QueryParameter String credentialsId,
