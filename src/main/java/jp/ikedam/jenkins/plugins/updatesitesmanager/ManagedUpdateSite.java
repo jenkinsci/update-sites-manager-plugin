@@ -23,6 +23,7 @@
  */
 package jp.ikedam.jenkins.plugins.updatesitesmanager;
 
+import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.util.FormValidation;
@@ -32,7 +33,8 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
+
+import jakarta.annotation.Nonnull;
 import jenkins.util.JSONSignatureValidator;
 import jp.ikedam.jenkins.plugins.updatesitesmanager.internal.ExtendedCertJsonSignValidator;
 import org.apache.commons.lang.StringUtils;
@@ -139,14 +141,13 @@ public class ManagedUpdateSite extends DescribedUpdateSite {
      *
      * @return JSONSignatureValidator object with additional cert as anchor if enabled
      */
-    @Deprecated
-    @Nonnull
+    @NonNull
     @Override
-    protected JSONSignatureValidator getJsonSignatureValidator() {
+    protected JSONSignatureValidator getJsonSignatureValidator(@CheckForNull String name) {
         if (isUseCaCertificate()) {
-            return new ExtendedCertJsonSignValidator(getId(), getCaCertificate());
+            return new ExtendedCertJsonSignValidator(name, getCaCertificate());
         } else {
-            return super.getJsonSignatureValidator();
+            return super.getJsonSignatureValidator(name);
         }
     }
 

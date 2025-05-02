@@ -28,17 +28,18 @@ import static hudson.util.FormValidation.Kind.OK;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import hudson.model.UpdateSite;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
 /**
  * Tests for DescribedUpdateSite, not concerned with Jenkins.
  */
-@RunWith(DataProviderRunner.class)
-public class DescribedUpdateSiteSimpleTest {
+@WithJenkins
+class DescribedUpdateSiteSimpleTest {
     private static class TestDescribedUpdateSite extends DescribedUpdateSite {
         public TestDescribedUpdateSite(String id, String url) {
             super(id, url);
@@ -53,7 +54,7 @@ public class DescribedUpdateSiteSimpleTest {
     }
 
     @Test
-    public void shouldTrimUrlAndId() {
+    void shouldTrimUrlAndId(JenkinsRule j) {
         String id = "testId";
         String url = "http://localhost/update-center.json";
         UpdateSite site = new TestDescribedUpdateSite("  " + id + "  ", " " + url + "\t");
@@ -63,7 +64,7 @@ public class DescribedUpdateSiteSimpleTest {
     }
 
     @Test
-    public void shoulHandleNull() {
+    void shouldHandleNull(JenkinsRule j) {
         new TestDescribedUpdateSite(null, null);
     }
 
@@ -72,29 +73,31 @@ public class DescribedUpdateSiteSimpleTest {
     }
 
     @Test
-    public void testDescriptorDoCheckIdOk() {
+    void testDescriptorDoCheckIdOk(JenkinsRule j) {
         assertThat("simple id", getDescriptor().doCheckId("somevalue").kind, is(OK));
     }
 
-    @Test
-    @DataProvider(
-            value = {"empty,", "blank, ", "null value,null"},
-            trimValues = false)
-    public void shouldReturnValidationErrOnWrongId(String comment, String id) {
+    @ParameterizedTest
+    @CsvSource(value={"empty,", "blank, ", "null value,null"},
+               ignoreLeadingAndTrailingWhitespace=false,
+               nullValues={"null"}
+    )
+    void shouldReturnValidationErrOnWrongId(String comment, String id, JenkinsRule j) {
         assertThat(comment, getDescriptor().doCheckId(id).kind, is(ERROR));
     }
 
     @Test
-    public void testDescriptorDoCheckUrlOk() {
+    void testDescriptorDoCheckUrlOk(JenkinsRule j) {
         String url = "http://localhost/update-center.json";
         assertThat("simple url", getDescriptor().doCheckUrl(url).kind, is(OK));
     }
 
-    @Test
-    @DataProvider(
-            value = {"empty,", "blank, ", "null value,null", "non url,blabla"},
-            trimValues = false)
-    public void shouldReturnValidationErrOnCheckWrongUrl(String comment, String url) {
+    @ParameterizedTest
+    @CsvSource(value={"empty,", "blank, ", "null value,null", "non url,blabla"},
+               ignoreLeadingAndTrailingWhitespace=false,
+               nullValues={"null"}
+    )
+    void shouldReturnValidationErrOnCheckWrongUrl(String comment, String url, JenkinsRule j) {
         assertThat(comment, getDescriptor().doCheckUrl(url).kind, is(ERROR));
     }
 }

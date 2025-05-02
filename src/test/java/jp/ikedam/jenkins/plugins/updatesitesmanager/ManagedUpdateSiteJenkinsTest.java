@@ -25,39 +25,35 @@ package jp.ikedam.jenkins.plugins.updatesitesmanager;
 
 import static hudson.util.FormValidation.Kind.ERROR;
 import static hudson.util.FormValidation.Kind.OK;
-import static jp.ikedam.jenkins.plugins.updatesitesmanager.testext.WebServerRecipe.RuleRunnerImpl.getResource;
-import static jp.ikedam.jenkins.plugins.updatesitesmanager.testext.WebServerRecipe.RuleRunnerImpl.urlFor;
+import static jp.ikedam.jenkins.plugins.updatesitesmanager.testext.UpdateCenterWebServerExtension.getResource;
+import static jp.ikedam.jenkins.plugins.updatesitesmanager.testext.UpdateCenterWebServerExtension.urlFor;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.core.Is.is;
 
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.Charset;
-import jp.ikedam.jenkins.plugins.updatesitesmanager.testext.WebServerRecipe;
+import jp.ikedam.jenkins.plugins.updatesitesmanager.testext.WithUpdateCenterWebServer;
 import org.apache.commons.io.FileUtils;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 import org.kohsuke.stapler.HttpResponse;
 import org.kohsuke.stapler.HttpResponses;
 
 /**
  * Tests for ManagedUpdateSite, concerned with Jenkins.
  */
-@RunWith(DataProviderRunner.class)
-public class ManagedUpdateSiteJenkinsTest {
-
-    @Rule
-    public JenkinsRule j = new JenkinsRule();
+@WithJenkins
+class ManagedUpdateSiteJenkinsTest {
 
     @Test
-    public void testDescriptorDoCheckCaCertificate() throws IOException, URISyntaxException {
+    void testDescriptorDoCheckCaCertificate(JenkinsRule j) throws IOException, URISyntaxException {
         String caCertificate =
                 FileUtils.readFileToString(getResource("caCertificate.crt", getClass()), Charset.defaultCharset());
 
@@ -68,7 +64,7 @@ public class ManagedUpdateSiteJenkinsTest {
     }
 
     @Test
-    public void shouldSuccessfullyCheckUpdatesWithoutAnyUC() throws Exception {
+    void shouldSuccessfullyCheckUpdatesWithoutAnyUC(JenkinsRule j) throws Exception {
         j.getInstance().getUpdateCenter().getSites().clear();
 
         HttpResponse rsp = j.getInstance().getPluginManager().doCheckUpdatesServer();
@@ -80,17 +76,15 @@ public class ManagedUpdateSiteJenkinsTest {
                 instanceOf(HttpResponses.forwardToPreviousPage().getClass()));
     }
 
-    @Test
-    @DataProvider(
-            value = {"", " ", "null", "blabla"},
-            trimValues = false)
-    public void shouldReturnValidationErrOnWrongCert(String cert) {
+    @ParameterizedTest
+    @ValueSource(strings = {"", " ", "null", "blabla"})
+    void shouldReturnValidationErrOnWrongCert(String cert, JenkinsRule j) {
         assertThat("Bad certificate", getDescriptor().doCheckCaCertificate(true, cert).kind, is(ERROR));
     }
 
     @Test
-    @WebServerRecipe
-    public void shouldFailUpdateWithoutCert() throws Exception {
+    @WithUpdateCenterWebServer
+    void shouldFailUpdateWithoutCert(JenkinsRule j) throws Exception {
         TestManagedUpdateSite site = forMethod(j.getTestDescription().getMethodName());
 
         j.getInstance().getUpdateCenter().getSites().clear();
@@ -106,8 +100,8 @@ public class ManagedUpdateSiteJenkinsTest {
     }
 
     @Test
-    @WebServerRecipe
-    public void shouldSuccessfullyUpdateWithWorkingUC() throws Exception {
+    @WithUpdateCenterWebServer
+    void shouldSuccessfullyUpdateWithWorkingUC(JenkinsRule j) throws Exception {
         String caCertificate =
                 FileUtils.readFileToString(getResource("caCertificate.crt", getClass()), Charset.defaultCharset());
 

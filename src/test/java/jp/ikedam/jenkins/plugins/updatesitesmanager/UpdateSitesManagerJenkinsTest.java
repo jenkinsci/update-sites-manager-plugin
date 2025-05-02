@@ -41,22 +41,22 @@ import java.util.List;
 import org.htmlunit.FailingHttpStatusCodeException;
 import org.htmlunit.html.HtmlForm;
 import org.htmlunit.html.HtmlPage;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
+import org.jvnet.hudson.test.junit.jupiter.WithLocalData;
 import org.jvnet.hudson.test.recipes.LocalData;
 import org.xml.sax.SAXException;
 
 /**
  * Tests for UpdateSitesManager, concerned with Jenkins.
  */
+@WithJenkins
 public class UpdateSitesManagerJenkinsTest {
 
-    @Rule
-    public JenkinsRule j = new JenkinsRule();
-
     @Test
-    public void shouldExistsLinkToManager() throws IOException, SAXException {
+    void shouldExistsLinkToManager(JenkinsRule j) throws IOException, SAXException {
         try (JenkinsRule.WebClient wc = j.createWebClient()) {
             HtmlPage managementPage = wc.goTo("manage");
 
@@ -68,18 +68,18 @@ public class UpdateSitesManagerJenkinsTest {
     }
 
     @Test
-    public void shouldNotReturnAnyUCIfEmptyList() {
+    void shouldNotReturnAnyUCIfEmptyList(JenkinsRule j) {
         j.getInstance().getUpdateCenter().getSites().clear();
 
         UpdateSitesManager manager =
                 j.getInstance().getExtensionList(ManagementLink.class).get(UpdateSitesManager.class);
-        assertNotNull(manager);
+        Assertions.assertNotNull(manager);
         assertThat("managed", manager.getManagedUpdateSiteList(), hasSize(0));
         assertThat("not managed", manager.getNotManagedUpdateSiteList(), hasSize(0));
     }
 
     @Test
-    public void shouldReturnBothManagedUnmanaged() throws IOException, SAXException {
+    void shouldReturnBothManagedUnmanaged(JenkinsRule j) throws IOException, SAXException {
         UpdateSite site1 = new UpdateSite("test1", "http://example.com/test/update-center.json");
         UpdateSite site2 =
                 new ManagedUpdateSite("test2", "http://example.com/test2/update-center.json", false, null, null, false);
@@ -90,7 +90,7 @@ public class UpdateSitesManagerJenkinsTest {
 
         UpdateSitesManager manager =
                 j.getInstance().getExtensionList(ManagementLink.class).get(UpdateSitesManager.class);
-        assertNotNull(manager);
+        Assertions.assertNotNull(manager);
         assertThat("managed", manager.getManagedUpdateSiteList(), hasSize(1));
         assertThat("not managed", manager.getNotManagedUpdateSiteList(), hasSize(1));
     }
@@ -106,18 +106,17 @@ public class UpdateSitesManagerJenkinsTest {
     }
 
     @Test
-    public void testGetUpdateSiteDescriptorList() {
+    void testGetUpdateSiteDescriptorList(JenkinsRule j) {
         UpdateSitesManager target = new UpdateSitesManager();
 
         List<DescribedUpdateSiteDescriptor> availableDescriptorList = target.getUpdateSiteDescriptorList();
 
         // availableDescriptorList must contain ManagedUpdateSite.
-        assertTrue(
-                "ManagedUpdateSite is filtered", containsDescriptor(availableDescriptorList, ManagedUpdateSite.class));
+        Assertions.assertTrue(containsDescriptor(availableDescriptorList, ManagedUpdateSite.class), "ManagedUpdateSite is filtered");
     }
 
     @Test
-    public void shouldSubmitSites() throws Exception {
+    void shouldSubmitSites(JenkinsRule j) throws Exception {
         UpdateSite site1 = new UpdateSite("test1", "http://example.com/test/update-center.json");
         UpdateSite site2 =
                 new ManagedUpdateSite("test2", "http://example.com/test2/update-center.json", false, null, "", false);
@@ -144,7 +143,7 @@ public class UpdateSitesManagerJenkinsTest {
     }
 
     @Test
-    public void shouldReturn400OnBlankId() throws Exception {
+    void shouldReturn400OnBlankId(JenkinsRule j) throws Exception {
         UpdateSite site =
                 new ManagedUpdateSite(" ", "http://example.com/test2/update-center.json", false, null, null, false);
         j.getInstance().getUpdateCenter().getSites().clear();
@@ -158,7 +157,7 @@ public class UpdateSitesManagerJenkinsTest {
     }
 
     @Test
-    public void shouldReturn400OnDuplicatedId() throws Exception {
+    void shouldReturn400OnDuplicatedId(JenkinsRule j) throws Exception {
         UpdateSite site1 = new UpdateSite("test1", "http://example.com/test/update-center.json");
         UpdateSite site2 =
                 new ManagedUpdateSite("test1", "http://example.com/test2/update-center.json", false, null, null, false);
@@ -174,15 +173,15 @@ public class UpdateSitesManagerJenkinsTest {
     }
 
     @Test
-    @LocalData
-    public void testPrivilege() throws Exception {
+    @WithLocalData
+    void testPrivilege(JenkinsRule j) throws Exception {
         try (JenkinsRule.WebClient wcUser = j.createWebClient()) {
             wcUser.login("user", "user");
             wcUser.getOptions().setPrintContentOnFailingStatusCode(false);
 
             Exception ex = assertThrows(
                     FailingHttpStatusCodeException.class,
-                    () -> wcUser.goTo("%s/update".formatted(UpdateSitesManager.URL)));
+                    () -> wcUser.goTo(UpdateSitesManager.URL));
             assertThat(ex.getMessage(), containsString("403"));
         }
     }
