@@ -25,14 +25,12 @@ package jp.ikedam.jenkins.plugins.updatesitesmanager;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.hasSize;
 
 import hudson.model.UpdateSite;
 import jakarta.annotation.Nonnull;
 import org.htmlunit.FailingHttpStatusCodeException;
 import org.htmlunit.html.HtmlForm;
-import org.htmlunit.html.HtmlPage;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
@@ -40,8 +38,6 @@ import org.jvnet.hudson.test.TestExtension;
 import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 import org.jvnet.hudson.test.junit.jupiter.WithLocalData;
 import org.kohsuke.stapler.DataBoundConstructor;
-
-import java.lang.reflect.Method;
 
 /**
  * Tests for DescribedUpdateSite, concerned with Jenkins.
@@ -100,7 +96,8 @@ class DescribedUpdateSiteJenkinsTest {
         try (JenkinsRule.WebClient wcUser = j.createWebClient()) {
             wcUser.getOptions().setPrintContentOnFailingStatusCode(false);
             wcUser.login("user", "user");
-            ex = Assertions.assertThrows(FailingHttpStatusCodeException.class, () -> wcUser.goTo(UpdateSitesManager.URL));
+            ex = Assertions.assertThrows(
+                    FailingHttpStatusCodeException.class, () -> wcUser.goTo(UpdateSitesManager.URL));
         }
         Assertions.assertNotNull(ex);
         assertThat(ex.getMessage(), containsString("403"));
@@ -119,7 +116,8 @@ class DescribedUpdateSiteJenkinsTest {
         Exception ex;
         try (JenkinsRule.WebClient wc = j.createWebClient()) {
             wc.getOptions().setPrintContentOnFailingStatusCode(false);
-            ex = Assertions.assertThrows(FailingHttpStatusCodeException.class, () -> wc.goTo(UpdateSitesManager.URL + "/update"));
+            ex = Assertions.assertThrows(
+                    FailingHttpStatusCodeException.class, () -> wc.goTo(UpdateSitesManager.URL + "/update"));
         }
         Assertions.assertNotNull(ex);
         assertThat(ex.getMessage(), containsString("405"));

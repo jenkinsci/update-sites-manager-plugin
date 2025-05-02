@@ -1,5 +1,15 @@
 package jp.ikedam.jenkins.plugins.updatesitesmanager.testext;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.lang.reflect.Method;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jetty.http.HttpHeader;
@@ -13,20 +23,8 @@ import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.runner.Description;
-import org.jvnet.hudson.test.JenkinsRule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.lang.reflect.Method;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.ByteBuffer;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
 
 public class UpdateCenterWebServerExtension implements BeforeEachCallback, AfterEachCallback {
     private static final Logger LOGGER = LoggerFactory.getLogger(UpdateCenterWebServerExtension.class);
@@ -51,17 +49,13 @@ public class UpdateCenterWebServerExtension implements BeforeEachCallback, After
                 LOGGER.info("UC gets request to: {}", request.getHttpURI());
 
                 Optional<Class<?>> testClass = context.getTestClass();
-                if(testClass.isEmpty()) {
+                if (testClass.isEmpty()) {
                     LOGGER.info("Test class is not available");
                     return false;
                 }
 
                 try {
-                    responseBody = FileUtils.readFileToString(
-                            getResource(
-                                    request.getId(),
-                                    testClass.get()),
-                            "UTF-8");
+                    responseBody = FileUtils.readFileToString(getResource(request.getId(), testClass.get()), "UTF-8");
                 } catch (URISyntaxException e) {
                     response.setStatus(HttpServletResponse.SC_NOT_FOUND);
                     handled = true;
@@ -78,10 +72,7 @@ public class UpdateCenterWebServerExtension implements BeforeEachCallback, After
         server.start();
         String link = new URL("http", "localhost", connector.getLocalPort(), "").toString();
         String methodName = methodFor(context);
-        LOGGER.info(
-                "Started UC: <{}> for [{}]",
-                link,
-                methodName);
+        LOGGER.info("Started UC: <{}> for [{}]", link, methodName);
         servers.put(methodName, link);
     }
 
@@ -91,8 +82,7 @@ public class UpdateCenterWebServerExtension implements BeforeEachCallback, After
             server.stop();
         }
         String methodName = methodFor(context);
-        LOGGER.info(
-                "Shutdown UC for: [{}]", methodName);
+        LOGGER.info("Shutdown UC for: [{}]", methodName);
         servers.remove(methodName);
     }
 
@@ -125,9 +115,10 @@ public class UpdateCenterWebServerExtension implements BeforeEachCallback, After
     }
 
     private String methodFor(ExtensionContext context) {
-        if(context.getTestMethod().isPresent()) {
+        if (context.getTestMethod().isPresent()) {
             Method method = context.getTestMethod().get();
-            Description description = Description.createTestDescription(method.getDeclaringClass(), method.getName(), method.getAnnotations());
+            Description description = Description.createTestDescription(
+                    method.getDeclaringClass(), method.getName(), method.getAnnotations());
             return description.getMethodName();
         }
         return "";

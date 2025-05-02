@@ -78,10 +78,10 @@ class DescribedUpdateSiteSimpleTest {
     }
 
     @ParameterizedTest
-    @CsvSource(value={"empty,", "blank, ", "null value,null"},
-               ignoreLeadingAndTrailingWhitespace=false,
-               nullValues={"null"}
-    )
+    @CsvSource(
+            value = {"empty,", "blank, ", "null value,null"},
+            ignoreLeadingAndTrailingWhitespace = false,
+            nullValues = {"null"})
     void shouldReturnValidationErrOnWrongId(String comment, String id, JenkinsRule j) {
         assertThat(comment, getDescriptor().doCheckId(id).kind, is(ERROR));
     }
@@ -93,10 +93,10 @@ class DescribedUpdateSiteSimpleTest {
     }
 
     @ParameterizedTest
-    @CsvSource(value={"empty,", "blank, ", "null value,null", "non url,blabla"},
-               ignoreLeadingAndTrailingWhitespace=false,
-               nullValues={"null"}
-    )
+    @CsvSource(
+            value = {"empty,", "blank, ", "null value,null", "non url,blabla"},
+            ignoreLeadingAndTrailingWhitespace = false,
+            nullValues = {"null"})
     void shouldReturnValidationErrOnCheckWrongUrl(String comment, String url, JenkinsRule j) {
         assertThat(comment, getDescriptor().doCheckUrl(url).kind, is(ERROR));
     }

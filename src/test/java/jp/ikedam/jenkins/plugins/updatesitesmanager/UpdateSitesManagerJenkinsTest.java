@@ -28,9 +28,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
 
 import hudson.model.Describable;
 import hudson.model.Descriptor;
@@ -46,7 +44,6 @@ import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 import org.jvnet.hudson.test.junit.jupiter.WithLocalData;
-import org.jvnet.hudson.test.recipes.LocalData;
 import org.xml.sax.SAXException;
 
 /**
@@ -112,7 +109,8 @@ public class UpdateSitesManagerJenkinsTest {
         List<DescribedUpdateSiteDescriptor> availableDescriptorList = target.getUpdateSiteDescriptorList();
 
         // availableDescriptorList must contain ManagedUpdateSite.
-        Assertions.assertTrue(containsDescriptor(availableDescriptorList, ManagedUpdateSite.class), "ManagedUpdateSite is filtered");
+        Assertions.assertTrue(
+                containsDescriptor(availableDescriptorList, ManagedUpdateSite.class), "ManagedUpdateSite is filtered");
     }
 
     @Test
@@ -179,9 +177,8 @@ public class UpdateSitesManagerJenkinsTest {
             wcUser.login("user", "user");
             wcUser.getOptions().setPrintContentOnFailingStatusCode(false);
 
-            Exception ex = assertThrows(
-                    FailingHttpStatusCodeException.class,
-                    () -> wcUser.goTo(UpdateSitesManager.URL));
+            Exception ex =
+                    assertThrows(FailingHttpStatusCodeException.class, () -> wcUser.goTo(UpdateSitesManager.URL));
             assertThat(ex.getMessage(), containsString("403"));
         }
     }

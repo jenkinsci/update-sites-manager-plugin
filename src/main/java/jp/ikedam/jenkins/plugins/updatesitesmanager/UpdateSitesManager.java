@@ -38,7 +38,6 @@ import hudson.util.FormApply;
 import jakarta.annotation.Nullable;
 import jakarta.servlet.ServletException;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import jenkins.model.Jenkins;
@@ -112,8 +111,7 @@ public class UpdateSitesManager extends ManagementLink {
      * @return a list of UpdateSites
      */
     public List<UpdateSite> getManagedUpdateSiteList() {
-        return newArrayList(
-                Iterables.filter(Jenkins.get().getUpdateCenter().getSites(), new IsSiteManaged()));
+        return newArrayList(Iterables.filter(Jenkins.get().getUpdateCenter().getSites(), new IsSiteManaged()));
     }
 
     /**
@@ -122,8 +120,7 @@ public class UpdateSitesManager extends ManagementLink {
      * @return a list of UpdateSites
      */
     public List<UpdateSite> getNotManagedUpdateSiteList() {
-        return newArrayList(
-                Iterables.filter(Jenkins.get().getUpdateCenter().getSites(), not(new IsSiteManaged())));
+        return newArrayList(Iterables.filter(Jenkins.get().getUpdateCenter().getSites(), not(new IsSiteManaged())));
     }
 
     /**
