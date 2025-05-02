@@ -35,18 +35,18 @@ import hudson.model.Descriptor.FormException;
 import hudson.model.ManagementLink;
 import hudson.model.UpdateSite;
 import hudson.util.FormApply;
+import jakarta.annotation.Nullable;
+import jakarta.servlet.ServletException;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import javax.annotation.Nullable;
-import javax.servlet.ServletException;
 import jenkins.model.Jenkins;
-import jp.ikedam.jenkins.plugins.updatesitesmanager.internal.IgnoreNotPOST;
-import jp.ikedam.jenkins.plugins.updatesitesmanager.internal.OnlyAdminister;
 import jp.ikedam.jenkins.plugins.updatesitesmanager.internal.Sites;
 import org.apache.commons.lang.StringUtils;
-import org.kohsuke.stapler.StaplerRequest;
-import org.kohsuke.stapler.StaplerResponse;
+import org.kohsuke.stapler.StaplerRequest2;
+import org.kohsuke.stapler.StaplerResponse2;
+import org.kohsuke.stapler.interceptor.RequirePOST;
 
 /**
  * Page for manage UpdateSites.
@@ -113,7 +113,7 @@ public class UpdateSitesManager extends ManagementLink {
      */
     public List<UpdateSite> getManagedUpdateSiteList() {
         return newArrayList(
-                Iterables.filter(Jenkins.getActiveInstance().getUpdateCenter().getSites(), new IsSiteManaged()));
+                Iterables.filter(Jenkins.get().getUpdateCenter().getSites(), new IsSiteManaged()));
     }
 
     /**
@@ -123,13 +123,13 @@ public class UpdateSitesManager extends ManagementLink {
      */
     public List<UpdateSite> getNotManagedUpdateSiteList() {
         return newArrayList(
-                Iterables.filter(Jenkins.getActiveInstance().getUpdateCenter().getSites(), not(new IsSiteManaged())));
+                Iterables.filter(Jenkins.get().getUpdateCenter().getSites(), not(new IsSiteManaged())));
     }
 
     /**
      * Returns all the registered DescribedUpdateSite.
      *
-     * @return a list of Desctiptor of DescribedUpdateSite.
+     * @return a list of Descriptor of DescribedUpdateSite.
      */
     public List<DescribedUpdateSiteDescriptor> getUpdateSiteDescriptorList() {
         return DescribedUpdateSite.all();
@@ -144,18 +144,20 @@ public class UpdateSitesManager extends ManagementLink {
      * @throws IOException thrown when failed to generate response or to save configurations
      * @throws FormException thrown when inappropriate configurations
      */
-    @OnlyAdminister
-    @IgnoreNotPOST
+    @RequirePOST
     @SuppressWarnings("unused")
-    public void doUpdate(StaplerRequest req, StaplerResponse rsp, @Sites List<UpdateSite> managed)
-            throws ServletException, IOException, FormException {
+    public void doUpdate(StaplerRequest2 req, StaplerResponse2 rsp, @Sites List<UpdateSite> managed)
+            throws IOException, FormException, ServletException {
+
+        Jenkins.get().checkPermission(Jenkins.ADMINISTER);
+
         List<UpdateSite> newSitesList = newArrayList(Iterables.concat(getNotManagedUpdateSiteList(), managed));
 
         shouldNotContainDuplicatedIds(newSitesList);
         shouldNotContainBlankIds(newSitesList);
 
-        Jenkins.getActiveInstance().getUpdateCenter().getSites().replaceBy(newSitesList);
-        Jenkins.getActiveInstance().getUpdateCenter().save();
+        Jenkins.get().getUpdateCenter().getSites().replaceBy(newSitesList);
+        Jenkins.get().getUpdateCenter().save();
 
         FormApply.success(req.getContextPath() + "/manage").generateResponse(req, rsp, null);
     }

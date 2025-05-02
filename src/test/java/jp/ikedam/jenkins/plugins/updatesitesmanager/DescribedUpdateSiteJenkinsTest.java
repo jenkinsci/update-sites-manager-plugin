@@ -27,29 +27,27 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThrows;
 
 import hudson.model.UpdateSite;
-import javax.annotation.Nonnull;
+import jakarta.annotation.Nonnull;
 import org.htmlunit.FailingHttpStatusCodeException;
 import org.htmlunit.html.HtmlForm;
 import org.htmlunit.html.HtmlPage;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.TestExtension;
-import org.jvnet.hudson.test.recipes.LocalData;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
+import org.jvnet.hudson.test.junit.jupiter.WithLocalData;
 import org.kohsuke.stapler.DataBoundConstructor;
+
+import java.lang.reflect.Method;
 
 /**
  * Tests for DescribedUpdateSite, concerned with Jenkins.
  */
-public class DescribedUpdateSiteJenkinsTest {
-
-    @Rule
-    public JenkinsRule j = new JenkinsRule();
-
+@WithJenkins
+class DescribedUpdateSiteJenkinsTest {
     public static class DescribedUpdateSiteForConfigureTest extends DescribedUpdateSite {
         private final String testValue;
 
@@ -74,7 +72,7 @@ public class DescribedUpdateSiteJenkinsTest {
     }
 
     @Test
-    public void shouldShowAllDescribedSitesAsManaged() throws Exception {
+    void shouldShowAllDescribedSitesAsManaged(JenkinsRule j) throws Exception {
         String existingId = "test1";
         UpdateSite site1 = new UpdateSite(existingId, "http://example.com/test/update-center.json");
         DescribedUpdateSiteForConfigureTest target = new DescribedUpdateSiteForConfigureTest(
@@ -92,8 +90,8 @@ public class DescribedUpdateSiteJenkinsTest {
     }
 
     @Test
-    @LocalData
-    public void testPrivilege() throws Exception {
+    @WithLocalData
+    void testPrivilege(JenkinsRule j) throws Exception {
         UpdateSite site = new UpdateSite("test1", "http://example.com/test/update-center.json");
         j.getInstance().getUpdateCenter().getSites().add(site);
 
@@ -102,9 +100,9 @@ public class DescribedUpdateSiteJenkinsTest {
         try (JenkinsRule.WebClient wcUser = j.createWebClient()) {
             wcUser.getOptions().setPrintContentOnFailingStatusCode(false);
             wcUser.login("user", "user");
-            ex = assertThrows(FailingHttpStatusCodeException.class, () -> wcUser.goTo(UpdateSitesManager.URL));
+            ex = Assertions.assertThrows(FailingHttpStatusCodeException.class, () -> wcUser.goTo(UpdateSitesManager.URL));
         }
-        assertNotNull(ex);
+        Assertions.assertNotNull(ex);
         assertThat(ex.getMessage(), containsString("403"));
 
         try (JenkinsRule.WebClient wcAdmin = j.createWebClient()) {
@@ -117,15 +115,13 @@ public class DescribedUpdateSiteJenkinsTest {
     }
 
     @Test
-    public void shouldRedirectOnGetReqOfUpdate() throws Exception {
-        HtmlPage htmlPage;
+    void shouldErrorOnGetReqOfUpdate(JenkinsRule j) throws Exception {
+        Exception ex;
         try (JenkinsRule.WebClient wc = j.createWebClient()) {
             wc.getOptions().setPrintContentOnFailingStatusCode(false);
-            htmlPage = wc.goTo(UpdateSitesManager.URL + "/update");
+            ex = Assertions.assertThrows(FailingHttpStatusCodeException.class, () -> wc.goTo(UpdateSitesManager.URL + "/update"));
         }
-        assertThat(
-                "should redirect",
-                htmlPage.getWebResponse().getWebRequest().getUrl().toString(),
-                endsWith(UpdateSitesManager.URL + "/"));
+        Assertions.assertNotNull(ex);
+        assertThat(ex.getMessage(), containsString("405"));
     }
 }
