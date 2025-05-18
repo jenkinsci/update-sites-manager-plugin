@@ -15,7 +15,6 @@ import hudson.Extension;
 import hudson.ProxyConfiguration;
 import hudson.model.Item;
 import hudson.model.Queue;
-import hudson.model.UpdateCenter;
 import hudson.model.queue.Tasks;
 import hudson.security.ACL;
 import hudson.util.FormValidation;
@@ -23,6 +22,7 @@ import hudson.util.ListBoxModel;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -67,7 +67,7 @@ public class CredentialRequiredUpdateSite extends ManagedUpdateSite {
     @Nullable
     private StandardUsernamePasswordCredentials getCredential() {
         List<StandardUsernamePasswordCredentials> credentials = CredentialsProvider.lookupCredentialsInItem(
-                StandardUsernamePasswordCredentials.class, null, null, null);
+                StandardUsernamePasswordCredentials.class, null, ACL.SYSTEM2, null);
         return CredentialsMatchers.firstOrNull(credentials, CredentialsMatchers.withId(credentialsId));
     }
 
@@ -116,8 +116,18 @@ public class CredentialRequiredUpdateSite extends ManagedUpdateSite {
     }
 
     @Override
-    protected UpdateCenter.InstallationJob createInstallationJob(Plugin plugin, UpdateCenter uc, boolean dynamicLoad) {
-        return super.createInstallationJob(plugin, uc, dynamicLoad);
+    public URLConnection connect(URL src) throws IOException {
+        URLConnection connection = ProxyConfiguration.open(src);
+        StandardUsernamePasswordCredentials credential = getCredential();
+        if (credential != null) {
+            String token =
+                    credential.getUsername() + ':' + credential.getPassword().getPlainText();
+            String basicAuth = "Basic " + Base64.getEncoder().encodeToString(token.getBytes(StandardCharsets.UTF_8));
+            connection.setRequestProperty("Authorization", basicAuth);
+        } else {
+            throw new IOException(Messages.CredentialRequiredUpdateSite_invalidCredentials(credentialsId));
+        }
+        return connection;
     }
 
     @Extension
