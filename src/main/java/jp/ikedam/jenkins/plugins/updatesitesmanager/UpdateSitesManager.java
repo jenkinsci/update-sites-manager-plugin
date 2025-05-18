@@ -30,6 +30,7 @@ import static com.google.common.collect.Sets.newHashSet;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.model.Descriptor.FormException;
 import hudson.model.ManagementLink;
@@ -40,6 +41,8 @@ import jakarta.servlet.ServletException;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
+
+import jenkins.management.Badge;
 import jenkins.model.Jenkins;
 import jp.ikedam.jenkins.plugins.updatesitesmanager.internal.Sites;
 import org.apache.commons.lang.StringUtils;
@@ -79,8 +82,13 @@ public class UpdateSitesManager extends ManagementLink {
      */
     @Override
     public String getIconFileName() {
-        // TODO: create a more appropriate icon.
-        return "plugin.gif";
+        return "/plugin/update-sites-manager/images/update-sites-manager.svg";
+    }
+
+    @NonNull
+    @Override
+    public Category getCategory() {
+        return Category.CONFIGURATION;
     }
 
     /**
