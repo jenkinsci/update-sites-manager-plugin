@@ -41,8 +41,6 @@ import jakarta.servlet.ServletException;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
-
-import jenkins.management.Badge;
 import jenkins.model.Jenkins;
 import jp.ikedam.jenkins.plugins.updatesitesmanager.internal.Sites;
 import org.apache.commons.lang.StringUtils;
