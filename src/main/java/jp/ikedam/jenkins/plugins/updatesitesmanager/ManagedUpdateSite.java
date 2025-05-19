@@ -38,6 +38,7 @@ import jp.ikedam.jenkins.plugins.updatesitesmanager.internal.ExtendedCertJsonSig
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
+import org.kohsuke.stapler.interceptor.RequirePOST;
 
 /**
  * Extended UpdateSite to be managed in UpdateSitesManager.
@@ -175,6 +176,7 @@ public class ManagedUpdateSite extends DescribedUpdateSite {
          * @param caCertificate the CA certificate
          * @return FormValidation the validation result
          */
+        @RequirePOST
         public FormValidation doCheckCaCertificate(
                 @QueryParameter boolean useCaCertificate, @QueryParameter String caCertificate) {
             if (!useCaCertificate) {

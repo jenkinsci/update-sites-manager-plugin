@@ -29,6 +29,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.QueryParameter;
+import org.kohsuke.stapler.interceptor.RequirePOST;
 
 /**
  * Base class for Descriptor of subclass of DescribedUpdateSite
@@ -40,6 +41,7 @@ public abstract class DescribedUpdateSiteDescriptor extends Descriptor<Described
      * @param id id to validate
      * @return the validation result
      */
+    @RequirePOST
     public FormValidation doCheckId(@QueryParameter String id) {
         if (StringUtils.isBlank(id)) {
             return FormValidation.error(Messages.DescribedupdateSite_id_required());
@@ -53,6 +55,7 @@ public abstract class DescribedUpdateSiteDescriptor extends Descriptor<Described
      * @param url the URL to validate
      * @return the validation result
      */
+    @RequirePOST
     public FormValidation doCheckUrl(@QueryParameter String url) {
         if (StringUtils.isBlank(url)) {
             return FormValidation.error(Messages.DescribedupdateSite_url_required());
