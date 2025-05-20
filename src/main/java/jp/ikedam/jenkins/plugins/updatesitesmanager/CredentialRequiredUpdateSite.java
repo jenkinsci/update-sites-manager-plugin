@@ -32,6 +32,7 @@ import java.util.List;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.AncestorInPath;
+import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.interceptor.RequirePOST;
@@ -50,6 +51,7 @@ public class CredentialRequiredUpdateSite extends ManagedUpdateSite {
      * @param note             note
      * @param disabled         {@code true} to disable the site
      */
+    @DataBoundConstructor
     public CredentialRequiredUpdateSite(
             String id, String url, boolean useCaCertificate, String caCertificate, String note, boolean disabled) {
         super(id, url, useCaCertificate, caCertificate, note, disabled);
