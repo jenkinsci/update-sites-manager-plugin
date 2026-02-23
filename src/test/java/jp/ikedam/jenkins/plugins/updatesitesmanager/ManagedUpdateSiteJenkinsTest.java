@@ -31,9 +31,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.core.Is.is;
 
-import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import jp.ikedam.jenkins.plugins.updatesitesmanager.testext.WithUpdateCenterWebServer;
@@ -53,7 +51,7 @@ import org.kohsuke.stapler.HttpResponses;
 class ManagedUpdateSiteJenkinsTest {
 
     @Test
-    void testDescriptorDoCheckCaCertificate(JenkinsRule j) throws IOException, URISyntaxException {
+    void testDescriptorDoCheckCaCertificate(JenkinsRule j) throws Exception {
         String caCertificate =
                 FileUtils.readFileToString(getResource("caCertificate.crt", getClass()), Charset.defaultCharset());
 

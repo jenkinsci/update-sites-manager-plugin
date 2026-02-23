@@ -22,7 +22,6 @@ import org.eclipse.jetty.util.Callback;
 import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
-import org.junit.runner.Description;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,7 +31,7 @@ public class UpdateCenterWebServerExtension implements BeforeEachCallback, After
     /**
      * In case of parallel execution of multiply test-methods we can handle server for each method
      */
-    private static final Map<String, String> servers = new HashMap<String, String>();
+    private static final Map<String, String> servers = new HashMap<>();
 
     private Server server;
 
@@ -117,7 +116,7 @@ public class UpdateCenterWebServerExtension implements BeforeEachCallback, After
     private String methodFor(ExtensionContext context) {
         if (context.getTestMethod().isPresent()) {
             Method method = context.getTestMethod().get();
-            Description description = Description.createTestDescription(
+            org.junit.runner.Description description = org.junit.runner.Description.createTestDescription(
                     method.getDeclaringClass(), method.getName(), method.getAnnotations());
             return description.getMethodName();
         }

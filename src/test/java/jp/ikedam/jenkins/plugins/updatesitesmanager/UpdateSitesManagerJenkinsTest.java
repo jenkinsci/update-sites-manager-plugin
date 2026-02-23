@@ -28,32 +28,29 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 import hudson.model.Describable;
 import hudson.model.Descriptor;
 import hudson.model.ManagementLink;
 import hudson.model.UpdateSite;
-import java.io.IOException;
 import java.util.List;
 import org.htmlunit.FailingHttpStatusCodeException;
 import org.htmlunit.html.HtmlForm;
 import org.htmlunit.html.HtmlPage;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 import org.jvnet.hudson.test.junit.jupiter.WithLocalData;
-import org.xml.sax.SAXException;
 
 /**
  * Tests for UpdateSitesManager, concerned with Jenkins.
  */
 @WithJenkins
-public class UpdateSitesManagerJenkinsTest {
+class UpdateSitesManagerJenkinsTest {
 
     @Test
-    void shouldExistsLinkToManager(JenkinsRule j) throws IOException, SAXException {
+    void shouldExistsLinkToManager(JenkinsRule j) throws Exception {
         try (JenkinsRule.WebClient wc = j.createWebClient()) {
             HtmlPage managementPage = wc.goTo("manage");
 
@@ -70,13 +67,13 @@ public class UpdateSitesManagerJenkinsTest {
 
         UpdateSitesManager manager =
                 j.getInstance().getExtensionList(ManagementLink.class).get(UpdateSitesManager.class);
-        Assertions.assertNotNull(manager);
+        assertNotNull(manager);
         assertThat("managed", manager.getManagedUpdateSiteList(), hasSize(0));
         assertThat("not managed", manager.getNotManagedUpdateSiteList(), hasSize(0));
     }
 
     @Test
-    void shouldReturnBothManagedUnmanaged(JenkinsRule j) throws IOException, SAXException {
+    void shouldReturnBothManagedUnmanaged(JenkinsRule j) {
         UpdateSite site1 = new UpdateSite("test1", "http://example.com/test/update-center.json");
         UpdateSite site2 =
                 new ManagedUpdateSite("test2", "http://example.com/test2/update-center.json", false, null, null, false);
@@ -87,7 +84,7 @@ public class UpdateSitesManagerJenkinsTest {
 
         UpdateSitesManager manager =
                 j.getInstance().getExtensionList(ManagementLink.class).get(UpdateSitesManager.class);
-        Assertions.assertNotNull(manager);
+        assertNotNull(manager);
         assertThat("managed", manager.getManagedUpdateSiteList(), hasSize(1));
         assertThat("not managed", manager.getNotManagedUpdateSiteList(), hasSize(1));
     }
@@ -109,7 +106,7 @@ public class UpdateSitesManagerJenkinsTest {
         List<DescribedUpdateSiteDescriptor> availableDescriptorList = target.getUpdateSiteDescriptorList();
 
         // availableDescriptorList must contain ManagedUpdateSite.
-        Assertions.assertTrue(
+        assertTrue(
                 containsDescriptor(availableDescriptorList, ManagedUpdateSite.class), "ManagedUpdateSite is filtered");
     }
 

@@ -1,6 +1,6 @@
 package jp.ikedam.jenkins.plugins.updatesitesmanager.internal;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import hudson.util.FormValidation;
 import java.nio.charset.StandardCharsets;
@@ -8,7 +8,6 @@ import java.util.Objects;
 import jenkins.util.JSONSignatureValidator;
 import net.sf.json.JSONObject;
 import org.apache.commons.io.IOUtils;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
@@ -17,7 +16,7 @@ import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
  * @author lanwen (Merkushev Kirill)
  */
 @WithJenkins
-public class ExtendedCertJsonSignValidatorTest {
+class ExtendedCertJsonSignValidatorTest {
 
     @Test
     void shouldAddCustomCertToTrustAnchors(JenkinsRule j) throws Exception {
@@ -32,6 +31,6 @@ public class ExtendedCertJsonSignValidatorTest {
                 Objects.requireNonNull(
                         getClass().getClassLoader().getResourceAsStream(RESOURCE_BASE + "/update-center.json")),
                 StandardCharsets.UTF_8));
-        Assertions.assertEquals(FormValidation.Kind.OK, validator.verifySignature(ucToTest).kind);
+        assertEquals(FormValidation.Kind.OK, validator.verifySignature(ucToTest).kind);
     }
 }
