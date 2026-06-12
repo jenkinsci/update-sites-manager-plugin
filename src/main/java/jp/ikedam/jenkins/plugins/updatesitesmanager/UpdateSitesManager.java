@@ -23,24 +23,19 @@
  */
 package jp.ikedam.jenkins.plugins.updatesitesmanager;
 
-import static com.google.common.base.Predicates.not;
-import static com.google.common.collect.Lists.newArrayList;
-import static com.google.common.collect.Sets.newHashSet;
-
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.model.Descriptor.FormException;
 import hudson.model.ManagementLink;
 import hudson.model.UpdateSite;
 import hudson.util.FormApply;
-import jakarta.annotation.Nullable;
 import jakarta.servlet.ServletException;
+import java.util.ArrayList;
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import jenkins.model.Jenkins;
 import jp.ikedam.jenkins.plugins.updatesitesmanager.internal.Sites;
 import org.apache.commons.lang.StringUtils;
@@ -117,7 +112,9 @@ public class UpdateSitesManager extends ManagementLink {
      * @return a list of UpdateSites
      */
     public List<UpdateSite> getManagedUpdateSiteList() {
-        return newArrayList(Iterables.filter(Jenkins.get().getUpdateCenter().getSites(), new IsSiteManaged()));
+        return Jenkins.get().getUpdateCenter().getSites().stream()
+                .filter(site -> site instanceof DescribedUpdateSite)
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
     /**
@@ -126,7 +123,9 @@ public class UpdateSitesManager extends ManagementLink {
      * @return a list of UpdateSites
      */
     public List<UpdateSite> getNotManagedUpdateSiteList() {
-        return newArrayList(Iterables.filter(Jenkins.get().getUpdateCenter().getSites(), not(new IsSiteManaged())));
+        return Jenkins.get().getUpdateCenter().getSites().stream()
+                .filter(site -> !(site instanceof DescribedUpdateSite))
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
     /**
@@ -154,7 +153,8 @@ public class UpdateSitesManager extends ManagementLink {
 
         Jenkins.get().checkPermission(Jenkins.ADMINISTER);
 
-        List<UpdateSite> newSitesList = newArrayList(Iterables.concat(getNotManagedUpdateSiteList(), managed));
+        List<UpdateSite> newSitesList = Stream.concat(getNotManagedUpdateSiteList().stream(), managed.stream())
+                .collect(Collectors.toCollection(ArrayList::new));
 
         shouldNotContainDuplicatedIds(newSitesList);
         shouldNotContainBlankIds(newSitesList);
@@ -169,7 +169,7 @@ public class UpdateSitesManager extends ManagementLink {
      * Check method for duplicated ids of submitted sites
      */
     private static void shouldNotContainDuplicatedIds(List<UpdateSite> sites) throws FormException {
-        HashSet<String> set = newHashSet(Iterables.transform(sites, new IdExtractor()));
+        Set<String> set = sites.stream().map(UpdateSite::getId).collect(Collectors.toSet());
 
         if (set.size() != sites.size()) {
             throw new FormException("id is duplicated", "id");
@@ -180,38 +180,8 @@ public class UpdateSitesManager extends ManagementLink {
      * Check method for blank ids of submitted sites
      */
     private static void shouldNotContainBlankIds(List<UpdateSite> sites) throws FormException {
-        if (Iterables.tryFind(sites, new WithBlankId()).isPresent()) {
+        if (sites.stream().map(UpdateSite::getId).anyMatch(StringUtils::isBlank)) {
             throw new FormException("id is empty", "id");
-        }
-    }
-
-    /**
-     * This predicate helps to filter which sites should be shown on UI as editable/not editable
-     */
-    public static class IsSiteManaged implements Predicate<UpdateSite> {
-        @Override
-        public boolean apply(@Nullable UpdateSite input) {
-            return input instanceof DescribedUpdateSite;
-        }
-    }
-
-    /**
-     * Helps to check duplication
-     */
-    public static class IdExtractor implements Function<UpdateSite, String> {
-        @Override
-        public String apply(UpdateSite site) {
-            return site.getId();
-        }
-    }
-
-    /**
-     * Helps to check ids is blank
-     */
-    public static class WithBlankId implements Predicate<UpdateSite> {
-        @Override
-        public boolean apply(UpdateSite input) {
-            return StringUtils.isBlank(input.getId());
         }
     }
 }

@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>5.24</version>
+    <version>6.2189.v695a_c41f5249</version>
     <relativePath />
   </parent>
 
@@ -19,7 +19,7 @@
   <licenses>
     <license>
       <name>The MIT license</name>
-      <url>http://www.opensource.org/licenses/mit-license.php</url>
+      <url>https://opensource.org/license/mit</url>
       <distribution>repo</distribution>
     </license>
   </licenses>
@@ -45,19 +45,18 @@
   <properties>
     <changelist>999999-SNAPSHOT</changelist>
     <gitHubRepo>jenkinsci/${project.artifactId}-plugin</gitHubRepo>
-    <jenkins.baseline>2.504</jenkins.baseline>
-    <jenkins.version>${jenkins.baseline}.1</jenkins.version>
+    <jenkins.baseline>2.528</jenkins.baseline>
+    <jenkins.version>${jenkins.baseline}.2</jenkins.version>
     <spotless.check.skip>false</spotless.check.skip>
     <ban-junit4-imports.skip>false</ban-junit4-imports.skip>
-    <jenkins-test-harness.version>2439.vee0607d480ea_</jenkins-test-harness.version>
   </properties>
 
   <dependencyManagement>
     <dependencies>
       <dependency>
         <groupId>io.jenkins.tools.bom</groupId>
-        <artifactId>bom-2.504.x</artifactId>
-        <version>5804.v80587a_38d937</version>
+        <artifactId>bom-2.528.x</artifactId>
+        <version>6549.v96f8c826373f</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -68,11 +67,7 @@
     <dependency>
       <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>credentials</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <scope>test</scope>
+      <version>1487.va_d001ede2c31</version>
     </dependency>
     <dependency>
       <groupId>org.jenkins-ci.plugins</groupId>
