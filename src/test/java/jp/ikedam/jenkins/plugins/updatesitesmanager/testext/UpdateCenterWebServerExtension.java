@@ -11,7 +11,6 @@ import java.util.Map;
 import java.util.Optional;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
 import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
@@ -94,7 +93,7 @@ public class UpdateCenterWebServerExtension implements BeforeEachCallback, After
      * @return resource file ready to read
      */
     public static File getResource(String name, Class<?> cls) throws URISyntaxException, FileNotFoundException {
-        String filename = "%s/%s".formatted(StringUtils.join(cls.getName().split("\\."), "/"), name);
+        String filename = "%s/%s".formatted(String.join("/", cls.getName().split("\\.")), name);
         URL url = ClassLoader.getSystemResource(filename);
         if (url == null) {
             throw new FileNotFoundException("Not found: %s".formatted(filename));

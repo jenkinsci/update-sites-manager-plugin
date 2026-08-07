@@ -32,6 +32,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
+import hudson.Util;
 import hudson.model.Descriptor.FormException;
 import hudson.model.ManagementLink;
 import hudson.model.UpdateSite;
@@ -43,7 +44,6 @@ import java.util.HashSet;
 import java.util.List;
 import jenkins.model.Jenkins;
 import jp.ikedam.jenkins.plugins.updatesitesmanager.internal.Sites;
-import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.StaplerRequest2;
 import org.kohsuke.stapler.StaplerResponse2;
 import org.kohsuke.stapler.interceptor.RequirePOST;
@@ -211,7 +211,7 @@ public class UpdateSitesManager extends ManagementLink {
     public static class WithBlankId implements Predicate<UpdateSite> {
         @Override
         public boolean apply(UpdateSite input) {
-            return StringUtils.isBlank(input.getId());
+            return Util.fixEmptyAndTrim(input.getId()) == null;
         }
     }
 }

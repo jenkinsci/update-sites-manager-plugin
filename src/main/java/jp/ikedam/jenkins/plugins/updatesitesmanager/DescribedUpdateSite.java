@@ -30,7 +30,6 @@ import hudson.model.UpdateSite;
 import java.util.ArrayList;
 import java.util.List;
 import jenkins.model.Jenkins;
-import org.apache.commons.lang.StringUtils;
 
 /**
  * Base for UpdateSite that have Descriptor.
@@ -44,7 +43,7 @@ public abstract class DescribedUpdateSite extends UpdateSite
      * @param url URL for the site
      */
     public DescribedUpdateSite(String id, String url) {
-        super(StringUtils.trim(id), StringUtils.trim(url));
+        super(id == null ? null : id.trim(), url == null ? null : url.trim());
     }
 
     /**
