@@ -26,6 +26,7 @@ package jp.ikedam.jenkins.plugins.updatesitesmanager;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
+import hudson.Util;
 import hudson.util.FormValidation;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
@@ -35,7 +36,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import jenkins.util.JSONSignatureValidator;
 import jp.ikedam.jenkins.plugins.updatesitesmanager.internal.ExtendedCertJsonSignValidator;
-import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.interceptor.RequirePOST;
@@ -130,7 +130,7 @@ public class ManagedUpdateSite extends DescribedUpdateSite {
     public ManagedUpdateSite(
             String id, String url, boolean useCaCertificate, String caCertificate, String note, boolean disabled) {
         super(id, url);
-        this.caCertificate = useCaCertificate ? StringUtils.trim(caCertificate) : null;
+        this.caCertificate = useCaCertificate && caCertificate != null ? caCertificate.trim() : null;
         this.note = note;
         this.disabled = disabled;
     }
@@ -183,7 +183,7 @@ public class ManagedUpdateSite extends DescribedUpdateSite {
                 return FormValidation.ok();
             }
 
-            if (StringUtils.isBlank(caCertificate)) {
+            if (Util.fixEmptyAndTrim(caCertificate) == null) {
                 return FormValidation.error(Messages.ManagedUpdateSite_caCertificate_required());
             }
 
@@ -196,8 +196,8 @@ public class ManagedUpdateSite extends DescribedUpdateSite {
 
             if (cf != null) {
                 try {
-                    cf.generateCertificate(new ByteArrayInputStream(
-                            StringUtils.trim(caCertificate).getBytes(StandardCharsets.UTF_8)));
+                    cf.generateCertificate(
+                            new ByteArrayInputStream(caCertificate.trim().getBytes(StandardCharsets.UTF_8)));
                 } catch (CertificateException e) {
                     return FormValidation.error(
                             Messages.ManagedUpdateSite_caCertificate_invalid(e.getLocalizedMessage()));

@@ -13,6 +13,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import hudson.Extension;
 import hudson.ProxyConfiguration;
+import hudson.Util;
 import hudson.model.Item;
 import hudson.model.Queue;
 import hudson.model.queue.Tasks;
@@ -30,7 +31,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
 import jenkins.model.Jenkins;
-import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
@@ -161,7 +161,7 @@ public class CredentialRequiredUpdateSite extends ManagedUpdateSite {
             } else if (!item.hasPermission(Item.EXTENDED_READ) && !item.hasPermission(CredentialsProvider.USE_ITEM)) {
                 return FormValidation.ok();
             }
-            if (!StringUtils.isBlank(credentialsId)) {
+            if (Util.fixEmptyAndTrim(credentialsId) != null) {
                 List<DomainRequirement> domainRequirement =
                         URIRequirementBuilder.fromUri(serverUrl).build();
                 if (CredentialsProvider.listCredentialsInItem(
@@ -185,7 +185,7 @@ public class CredentialRequiredUpdateSite extends ManagedUpdateSite {
                 final @QueryParameter String url) {
             StandardListBoxModel result = new StandardListBoxModel();
 
-            credentialsId = StringUtils.trimToEmpty(credentialsId);
+            credentialsId = Util.fixNull(credentialsId).trim();
             if (item == null) {
                 if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
                     return result.includeCurrentValue(credentialsId);

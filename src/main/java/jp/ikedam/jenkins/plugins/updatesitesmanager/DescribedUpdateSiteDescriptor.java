@@ -23,11 +23,11 @@
  */
 package jp.ikedam.jenkins.plugins.updatesitesmanager;
 
+import hudson.Util;
 import hudson.model.Descriptor;
 import hudson.util.FormValidation;
 import java.net.URI;
 import java.net.URISyntaxException;
-import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.interceptor.RequirePOST;
 
@@ -43,7 +43,7 @@ public abstract class DescribedUpdateSiteDescriptor extends Descriptor<Described
      */
     @RequirePOST
     public FormValidation doCheckId(@QueryParameter String id) {
-        if (StringUtils.isBlank(id)) {
+        if (Util.fixEmptyAndTrim(id) == null) {
             return FormValidation.error(Messages.DescribedupdateSite_id_required());
         }
         return FormValidation.ok();
@@ -57,7 +57,7 @@ public abstract class DescribedUpdateSiteDescriptor extends Descriptor<Described
      */
     @RequirePOST
     public FormValidation doCheckUrl(@QueryParameter String url) {
-        if (StringUtils.isBlank(url)) {
+        if (Util.fixEmptyAndTrim(url) == null) {
             return FormValidation.error(Messages.DescribedupdateSite_url_required());
         }
 
@@ -68,7 +68,7 @@ public abstract class DescribedUpdateSiteDescriptor extends Descriptor<Described
             return FormValidation.error(Messages.DescribedupdateSite_url_invalid(e.getLocalizedMessage()));
         }
 
-        if (StringUtils.isBlank(uri.getScheme()) || StringUtils.isBlank(uri.getHost())) {
+        if (Util.fixEmptyAndTrim(uri.getScheme()) == null || Util.fixEmptyAndTrim(uri.getHost()) == null) {
             return FormValidation.error(Messages.DescribedupdateSite_url_invalid("incomplete URI"));
         }
         return FormValidation.ok();
