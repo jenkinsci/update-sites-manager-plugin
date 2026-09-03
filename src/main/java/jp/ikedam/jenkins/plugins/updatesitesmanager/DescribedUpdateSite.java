@@ -27,7 +27,6 @@ import hudson.DescriptorExtensionList;
 import hudson.ExtensionPoint;
 import hudson.model.Describable;
 import hudson.model.UpdateSite;
-import java.util.ArrayList;
 import java.util.List;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
@@ -82,7 +81,7 @@ public abstract class DescribedUpdateSite extends UpdateSite
     @Override
     public List<Plugin> getAvailables() {
         if (isDisabled()) {
-            return new ArrayList<>(0);
+            return List.of();
         }
         return super.getAvailables();
     }
@@ -98,7 +97,7 @@ public abstract class DescribedUpdateSite extends UpdateSite
     @Override
     public List<Plugin> getUpdates() {
         if (isDisabled()) {
-            return new ArrayList<>(0);
+            return List.of();
         }
         return super.getUpdates();
     }

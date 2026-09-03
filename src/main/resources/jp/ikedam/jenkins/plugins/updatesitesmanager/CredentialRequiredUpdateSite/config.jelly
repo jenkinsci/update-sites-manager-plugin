@@ -35,6 +35,12 @@ THE SOFTWARE.
     <f:entry title="${%Note}" field="note">
         <f:textbox />
     </f:entry>
+    <f:entry title="${%Authentication Type}" field="authenticationType">
+        <f:select/>
+    </f:entry>
+    <f:entry title="${%API Key Header}" field="apiKeyHeaderName">
+        <f:textbox />
+    </f:entry>
     <f:entry title="${%Credentials}" field="credentialsId">
         <c:select/>
     </f:entry>
@@ -43,4 +49,46 @@ THE SOFTWARE.
         <f:textarea />
       </f:entry>
     </f:optionalBlock>
+    <script>
+      (function () {
+        function getFieldInput(fieldName) {
+          return document.querySelector('[name="_.' + fieldName + '"]')
+              || document.querySelector('[name$=".' + fieldName + '"]')
+              || document.querySelector('[name$="' + fieldName + '"]');
+        }
+
+        function getEntryContainer(fieldName) {
+          var field = getFieldInput(fieldName);
+          if (!field) {
+            return null;
+          }
+          return field.closest('.jenkins-form-item') || field.closest('tr') || field.parentElement;
+        }
+
+        function refreshApiKeyHeaderVisibility() {
+          var authType = getFieldInput('authenticationType');
+          var apiKeyHeaderContainer = getEntryContainer('apiKeyHeaderName');
+          if (!authType || !apiKeyHeaderContainer) {
+            return;
+          }
+          var show = authType.value === 'API_KEY';
+          apiKeyHeaderContainer.style.display = show ? '' : 'none';
+        }
+
+        function attach() {
+          var authType = getFieldInput('authenticationType');
+          if (!authType) {
+            return;
+          }
+          authType.addEventListener('change', refreshApiKeyHeaderVisibility);
+          refreshApiKeyHeaderVisibility();
+        }
+
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', attach);
+        } else {
+          attach();
+        }
+      })();
+    </script>
 </j:jelly>

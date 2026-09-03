@@ -27,8 +27,11 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.AncestorInPath;
@@ -39,6 +42,30 @@ import org.kohsuke.stapler.interceptor.RequirePOST;
 import org.springframework.security.core.Authentication;
 
 public class CredentialRequiredUpdateSite extends ManagedUpdateSite {
+    private enum AuthenticationType {
+        BASIC("Basic"),
+        BEARER("Bearer"),
+        API_KEY("API Key");
+
+        private final String displayName;
+        private static final Map<String, AuthenticationType> VALUES_BY_ID =
+                Arrays.stream(values()).collect(Collectors.toUnmodifiableMap(AuthenticationType::name, value -> value));
+
+        AuthenticationType(String displayName) {
+            this.displayName = displayName;
+        }
+
+        public String getDisplayName() {
+            return displayName;
+        }
+
+        public static AuthenticationType fromId(String id) {
+            return VALUES_BY_ID.getOrDefault(id, BASIC);
+        }
+    }
+
+    private String authenticationType;
+    private String apiKeyHeaderName;
     private String credentialsId;
 
     /**
@@ -61,9 +88,27 @@ public class CredentialRequiredUpdateSite extends ManagedUpdateSite {
         return credentialsId;
     }
 
+    public String getAuthenticationType() {
+        return StringUtils.defaultIfBlank(authenticationType, AuthenticationType.BASIC.name());
+    }
+
+    public String getApiKeyHeaderName() {
+        return StringUtils.defaultIfBlank(apiKeyHeaderName, "X-API-Key");
+    }
+
     @DataBoundSetter
     public void setCredentialsId(String credentialsId) {
         this.credentialsId = credentialsId;
+    }
+
+    @DataBoundSetter
+    public void setAuthenticationType(String authenticationType) {
+        this.authenticationType = authenticationType;
+    }
+
+    @DataBoundSetter
+    public void setApiKeyHeaderName(String apiKeyHeaderName) {
+        this.apiKeyHeaderName = apiKeyHeaderName;
     }
 
     @Nullable
@@ -83,16 +128,14 @@ public class CredentialRequiredUpdateSite extends ManagedUpdateSite {
 
         StandardUsernamePasswordCredentials credential = getCredential();
         if (credential != null) {
-            String token = String.format(
-                    "%s:%s", credential.getUsername(), credential.getPassword().getPlainText());
-            String basicAuth = String.format(
-                    "Basic %s", Base64.getEncoder().encodeToString((token.getBytes(StandardCharsets.UTF_8))));
+            String authorizationValue = getAuthorizationValue(credential);
 
             HttpClient httpClient = ProxyConfiguration.newHttpClient();
             HttpRequest httpRequest;
             try {
                 httpRequest = ProxyConfiguration.newHttpRequestBuilder(url.toURI())
-                        .headers("Accept", "application/json", "Authorization", basicAuth)
+                        .header("Accept", "application/json")
+                        .header(getAuthenticationHeaderName(), authorizationValue)
                         .GET()
                         .build();
             } catch (IllegalArgumentException | URISyntaxException e) {
@@ -119,17 +162,34 @@ public class CredentialRequiredUpdateSite extends ManagedUpdateSite {
 
     @Override
     public URLConnection connect(URL src) throws IOException {
-        URLConnection connection = ProxyConfiguration.open(src);
+        URLConnection connection = super.connect(src);
         StandardUsernamePasswordCredentials credential = getCredential();
         if (credential != null) {
-            String token =
-                    credential.getUsername() + ':' + credential.getPassword().getPlainText();
-            String basicAuth = "Basic " + Base64.getEncoder().encodeToString(token.getBytes(StandardCharsets.UTF_8));
-            connection.setRequestProperty("Authorization", basicAuth);
+            connection.setRequestProperty(getAuthenticationHeaderName(), getAuthorizationValue(credential));
         } else {
             throw new IOException(Messages.CredentialRequiredUpdateSite_invalidCredentials(credentialsId));
         }
         return connection;
+    }
+
+    private String getAuthenticationHeaderName() {
+        return switch (AuthenticationType.fromId(getAuthenticationType())) {
+            case API_KEY -> getApiKeyHeaderName();
+            case BASIC, BEARER -> "Authorization";
+        };
+    }
+
+    private String getAuthorizationValue(StandardUsernamePasswordCredentials credential) {
+        return switch (AuthenticationType.fromId(getAuthenticationType())) {
+            case API_KEY -> credential.getPassword().getPlainText();
+            case BEARER -> "Bearer " + credential.getPassword().getPlainText();
+            case BASIC -> {
+                String token = credential.getUsername()
+                        + ':'
+                        + credential.getPassword().getPlainText();
+                yield "Basic " + Base64.getEncoder().encodeToString(token.getBytes(StandardCharsets.UTF_8));
+            }
+        };
     }
 
     @Extension
@@ -210,8 +270,17 @@ public class CredentialRequiredUpdateSite extends ManagedUpdateSite {
             return result;
         }
 
+        @SuppressWarnings("unused")
+        public ListBoxModel doFillAuthenticationTypeItems() {
+            ListBoxModel result = new ListBoxModel();
+            for (AuthenticationType value : AuthenticationType.values()) {
+                result.add(value.getDisplayName(), value.name());
+            }
+            return result;
+        }
+
         protected Authentication getAuthentication(Item item) {
-            return item instanceof Queue.Task ? Tasks.getAuthenticationOf2((Queue.Task) item) : ACL.SYSTEM2;
+            return item instanceof Queue.Task task ? Tasks.getAuthenticationOf2(task) : ACL.SYSTEM2;
         }
     }
 }
