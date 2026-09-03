@@ -48,8 +48,8 @@ public class CredentialRequiredUpdateSite extends ManagedUpdateSite {
         API_KEY("API Key");
 
         private final String displayName;
-        private static final Map<String, AuthenticationType> VALUES_BY_ID = Arrays.stream(values())
-                .collect(Collectors.toUnmodifiableMap(AuthenticationType::name, value -> value));
+        private static final Map<String, AuthenticationType> VALUES_BY_ID =
+                Arrays.stream(values()).collect(Collectors.toUnmodifiableMap(AuthenticationType::name, value -> value));
 
         AuthenticationType(String displayName) {
             this.displayName = displayName;
@@ -184,7 +184,9 @@ public class CredentialRequiredUpdateSite extends ManagedUpdateSite {
             case API_KEY -> credential.getPassword().getPlainText();
             case BEARER -> "Bearer " + credential.getPassword().getPlainText();
             case BASIC -> {
-                String token = credential.getUsername() + ':' + credential.getPassword().getPlainText();
+                String token = credential.getUsername()
+                        + ':'
+                        + credential.getPassword().getPlainText();
                 yield "Basic " + Base64.getEncoder().encodeToString(token.getBytes(StandardCharsets.UTF_8));
             }
         };
